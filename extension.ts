@@ -3,7 +3,7 @@ import * as path from 'path'
 
 // Define the shape of the state object
 interface WebviewState {
-  currentTab: 'form' | 'text' | 'flags'
+  currentView: 'form' | 'text' | 'flags'
   commitData: any
   textContent: string
   flags: Record<string, string[]>
@@ -12,11 +12,17 @@ interface WebviewState {
 export function activate(context: vscode.ExtensionContext) {
   console.log('Commit Assistant is now active!')
 
-  const disposable = vscode.commands.registerCommand('commitAssistant.openEditor', () => {
-    CommitEditorPanel.createOrShow(context)
-  })
+  context.subscriptions.push(
+    vscode.commands.registerCommand('commitAssistant.openEditor', () => {
+      CommitEditorPanel.createOrShow(context)
+    })
+  )
 
-  context.subscriptions.push(disposable)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('commitAssistant.openSettings', () => {
+      SettingsPanel.createOrShow(context)
+    })
+  )
 }
 
 class CommitEditorPanel {
@@ -67,11 +73,20 @@ class CommitEditorPanel {
           case 'saveState':
             this._context.workspaceState.update('state', message.state)
             return
+          case 'openSettings':
+            vscode.commands.executeCommand('commitAssistant.openSettings')
+            return
         }
       },
       null,
       this._disposables
     )
+
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('commitAssistant')) {
+        // Settings are handled in the settings panel now
+      }
+    })
   }
 
   private _saveCommitMessage(commitMessage: string) {
@@ -134,6 +149,108 @@ class CommitEditorPanel {
 
     this._panel.dispose()
 
+    while (this._disposables.length) {
+      const x = this._disposables.pop()
+      if (x) {
+        x.dispose()
+      }
+    }
+  }
+}
+
+class SettingsPanel {
+  public static currentPanel: SettingsPanel | undefined
+  public static readonly viewType = 'commitAssistantSettings'
+
+  private readonly _panel: vscode.WebviewPanel
+  private readonly _context: vscode.ExtensionContext
+  private _disposables: vscode.Disposable[] = []
+
+  public static createOrShow(context: vscode.ExtensionContext) {
+    const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
+
+    if (SettingsPanel.currentPanel) {
+      SettingsPanel.currentPanel._panel.reveal(column)
+      return
+    }
+
+    const panel = vscode.window.createWebviewPanel(SettingsPanel.viewType, 'Commit Assistant Settings', column || vscode.ViewColumn.One, {
+      enableScripts: true,
+      retainContextWhenHidden: true,
+      localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out', 'webview'))],
+    })
+
+    SettingsPanel.currentPanel = new SettingsPanel(panel, context)
+  }
+
+  private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
+    this._panel = panel
+    this._context = context
+
+    this._update()
+
+    this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
+
+    this._panel.webview.onDidReceiveMessage(
+      (message) => {
+        if (message.command === 'updateSetting') {
+          vscode.workspace.getConfiguration('commitAssistant').update(message.key, message.value, vscode.ConfigurationTarget.Global)
+        }
+      },
+      null,
+      this._disposables
+    )
+
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('commitAssistant')) {
+        this._sendSettings()
+      }
+    })
+  }
+
+  private _sendSettings() {
+    const config = vscode.workspace.getConfiguration('commitAssistant')
+    this._panel.webview.postMessage({
+      command: 'loadSettings',
+      settings: {
+        defaultView: config.get('defaultView'),
+        saveAndClose: config.get('saveAndClose'),
+      },
+    })
+  }
+
+  private _update() {
+    this._panel.webview.html = this._getHtmlForWebview(this._panel.webview)
+    this._sendSettings()
+  }
+
+  private _getHtmlForWebview(webview: vscode.Webview): string {
+    const scriptPathOnDisk = vscode.Uri.file(path.join(this._context.extensionPath, 'out', 'webview', 'settings-bundle.js'))
+    const scriptUri = webview.asWebviewUri(scriptPathOnDisk)
+
+    const stylePathOnDisk = vscode.Uri.file(path.join(this._context.extensionPath, 'out', 'webview', 'bundle.css'))
+    const styleUri = webview.asWebviewUri(stylePathOnDisk)
+
+    const nonce = getNonce()
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="${styleUri}" rel="stylesheet">
+    <title>Commit Assistant Settings</title>
+</head>
+<body>
+    <script nonce="${nonce}" src="${scriptUri}"></script>
+</body>
+</html>`
+  }
+
+  public dispose() {
+    SettingsPanel.currentPanel = undefined
+    this._panel.dispose()
     while (this._disposables.length) {
       const x = this._disposables.pop()
       if (x) {

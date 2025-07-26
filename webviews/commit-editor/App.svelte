@@ -5,11 +5,12 @@
   import TextView from './components/TextView.svelte';
   import Actions from './components/Actions.svelte';
   import FlagsView from './components/FlagsView.svelte';
+  import SettingsIcon from './components/icons/Settings.svelte';
 
   // @ts-ignore
   const vscode = acquireVsCodeApi();
 
-  let currentTab: 'form' | 'text' | 'flags' = 'form';
+  let currentView: 'form' | 'text' | 'flags' = 'form';
 
   let commitData = {
     type: '',
@@ -78,7 +79,7 @@
         const state = message.state;
         if (!state) return;
 
-        currentTab = state.currentTab || 'form';
+        currentView = state.currentView || 'form';
         const loadedCommitData = state.commitData;
         if (loadedCommitData) {
           commitData.type = loadedCommitData.type || '';
@@ -103,7 +104,7 @@
   });
 
   $: {
-    if (currentTab === 'form') {
+    if (currentView === 'form') {
       preview = generateCommitFromForm();
     } else {
       preview = textContent;
@@ -115,19 +116,24 @@
     // Post the state to the extension host
     vscode.postMessage({
       command: 'saveState',
-      state: { currentTab, commitData, textContent, flags }
+      state: { currentView, commitData, textContent, flags }
     });
   }
 </script>
 
 <main class="p-4 sm:p-6 font-sans flex flex-col h-screen">
   <div class="flex-shrink-0">
-    <h1 class="text-xl font-bold mb-4">🤖 Commit Assistant</h1>
-    <Tabs bind:currentTab />
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-xl font-bold">🤖 Commit Assistant</h1>
+      <button on:click={() => vscode.postMessage({ command: 'openSettings' })} class="p-1 rounded-md hover:bg-gray-500/20" title="Settings">
+        <SettingsIcon class="w-5 h-5" />
+      </button>
+    </div>
+    <Tabs bind:currentTab={currentView} />
   </div>
 
   <div class="flex-grow overflow-y-auto mt-4">
-    {#if currentTab === 'form'}
+    {#if currentView === 'form'}
       <FormView
         {commitData}
         {flags}
@@ -135,9 +141,9 @@
           commitData = e.detail;
         }}
       />
-    {:else if currentTab === 'text'}
+    {:else if currentView === 'text'}
       <TextView bind:value={textContent} />
-    {:else if currentTab === 'flags'}
+    {:else if currentView === 'flags'}
       <FlagsView
         bind:flags
       />

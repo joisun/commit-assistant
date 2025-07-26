@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let currentTab: 'form' | 'text' | 'flags';
+  export let currentTab: 'form' | 'text' | 'flags' | 'settings';
 
   const tabs: { id: 'form' | 'text' | 'flags'; label: string }[] = [
     { id: 'form', label: 'Form' },
@@ -8,6 +8,7 @@
   ];
 </script>
 
+{#if currentTab !== 'settings'}
 <div class="border-b" style="border-color: var(--vscode-editorGroupHeader-tabsBorder);">
   <nav class="-mb-px flex" aria-label="Tabs">
     {#each tabs as tab}
@@ -24,6 +25,7 @@
     {/each}
   </nav>
 </div>
+{/if}
 
 <style>
   .tab-button {

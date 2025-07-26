@@ -35,6 +35,10 @@
         "title": "Open Commit Editor",
         "category": "Git",
         "icon": "$(edit)"
+      },
+      {
+        "command": "commitAssistant.openSettings",
+        "title": "Open Commit Assistant Settings"
       }
     ],
     "menus": {
