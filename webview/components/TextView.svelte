@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import AITrigger from './AITrigger.svelte';
 
   export let value: string;
   let textarea: HTMLTextAreaElement;
@@ -21,7 +22,10 @@
 </script>
 
 <div>
-  <label for="commit-text" class="block text-sm font-medium mb-1">Commit Message</label>
+  <div class="flex justify-between items-center mb-1">
+    <label for="commit-text" class="block text-sm font-medium">Commit Message</label>
+    <AITrigger />
+  </div>
   <textarea
     bind:this={textarea}
     id="commit-text"

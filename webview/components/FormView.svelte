@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import FlagRow from './FlagRow.svelte';
   import Plus from './icons/Plus.svelte';
+  import AITrigger from './AITrigger.svelte';
 
   export let commitData: {
     type: string;
@@ -51,6 +52,10 @@
 </script>
 
 <div class="space-y-4">
+  <div class="flex justify-between items-center">
+    <h3 class="text-base font-medium">Form</h3>
+    <AITrigger />
+  </div>
   <div>
     <label class="block text-sm font-medium mb-1">Flags <span class="text-gray-400">(optional)</span></label>
     <div class="space-y-2">
