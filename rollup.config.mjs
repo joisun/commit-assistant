@@ -14,7 +14,7 @@ import tailwindConfig from './tailwind.config.mjs'
 const production = !process.env.ROLLUP_WATCH
 
 export default {
-  input: 'webview/main.ts',
+  input: 'webviews/commit-editor/main.ts',
   output: {
     sourcemap: !production,
     format: 'iife',
@@ -44,7 +44,7 @@ export default {
     typescript({
       sourceMap: !production,
       inlineSources: !production,
-      tsconfig: path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'webview/tsconfig.json'),
+      tsconfig: path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'webviews/tsconfig.json'),
     }),
     production && terser(),
   ],
