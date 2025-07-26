@@ -1,13 +1,18 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import Tabs from './components/Tabs.svelte';
+  import FormView from './components/FormView.svelte';
+  import TextView from './components/TextView.svelte';
+  import Preview from './components/Preview.svelte';
+  import Actions from './components/Actions.svelte';
 
-  // VS Code API
   // @ts-ignore
   const vscode = acquireVsCodeApi();
 
   let currentTab: 'form' | 'text' = 'form';
+  let preview = '';
 
-  const commitData = {
+  let commitData = {
     type: '',
     scope: '',
     description: '',
@@ -16,46 +21,22 @@
   };
 
   let textContent = '';
-  let preview = '';
 
-  const commitTypes = [
-    { value: 'feat', label: 'feat: A new feature' },
-    { value: 'fix', label: 'fix: A bug fix' },
-    { value: 'docs', label: 'docs: Documentation changes' },
-    { value: 'style', label: 'style: Code style changes' },
-    { value: 'refactor', label: 'refactor: Code refactoring' },
-    { value: 'test', label: 'test: Adding tests' },
-    { value: 'chore', label: 'chore: Maintenance tasks' },
-  ];
-
-  function updatePreview() {
-    if (currentTab === 'form') {
-      const { type, scope, description, body, footer } = commitData;
-      if (!type || !description) {
-        preview = '';
-        return;
-      }
-      let message = type;
-      if (scope) {
-        message += `(${scope})`;
-      }
-      message += `: ${description}`;
-      if (body) {
-        message += `\n\n${body}`;
-      }
-      if (footer) {
-        message += `\n\n${footer}`;
-      }
-      preview = message;
-    } else {
-      preview = textContent;
-    }
+  function generateCommitFromForm() {
+    const { type, scope, description, body, footer } = commitData;
+    if (!type || !description) return '';
+    
+    let message = type;
+    if (scope) message += `(${scope})`;
+    message += `: ${description}`;
+    if (body) message += `\n\n${body}`;
+    if (footer) message += `\n\n${footer}`;
+    return message;
   }
 
   function saveCommit() {
     if (!preview.trim()) {
-      // In a real shadcn setup, we'd use a Toast component here
-      alert('Please enter a commit message');
+      vscode.postMessage({ command: 'showError', text: 'Commit message cannot be empty.' });
       return;
     }
     vscode.postMessage({ command: 'saveCommit', text: preview });
@@ -66,22 +47,15 @@
   }
 
   function saveState() {
-    const state = {
-      currentTab,
-      formData: commitData,
-      textContent,
-    };
-    vscode.setState(state);
+    vscode.setState({ currentTab, commitData, textContent });
   }
 
   function loadState() {
     const state = vscode.getState();
     if (!state) return;
-
     currentTab = state.currentTab || 'form';
-    Object.assign(commitData, state.formData);
+    commitData = state.commitData || commitData;
     textContent = state.textContent || '';
-    updatePreview();
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -108,73 +82,45 @@
 
   $: {
     if (currentTab === 'form') {
-      updatePreview();
+      preview = generateCommitFromForm();
+    } else {
+      preview = textContent;
     }
+    saveState();
   }
-  $: updatePreview();
-
 </script>
 
-<main class="bg-background text-foreground p-4 font-sans">
-  <div class="container mx-auto">
-    <h1 class="text-2xl font-bold mb-4">🤖 Commit Assistant</h1>
+<main class="bg-white dark:bg-gray-900 text-black dark:text-white p-4 sm:p-6 font-sans flex flex-col h-screen">
+  <div class="flex-shrink-0">
+    <h1 class="text-xl font-bold mb-4">🤖 Commit Assistant</h1>
+    <Tabs bind:currentTab />
+  </div>
 
-    <div class="flex border-b mb-4">
-      <button
-        class="py-2 px-4 -mb-px {currentTab === 'form' ? 'border-b-2 border-blue-500' : ''}"
-        on:click={() => currentTab = 'form'}>
-        📝 Form View
-      </button>
-      <button
-        class="py-2 px-4 -mb-px {currentTab === 'text' ? 'border-b-2 border-blue-500' : ''}"
-        on:click={() => currentTab = 'text'}>
-        📄 Text View
-      </button>
-    </div>
-
+  <div class="flex-grow overflow-y-auto pr-2 -mr-2">
     {#if currentTab === 'form'}
-      <div class="space-y-4">
-        <div>
-          <label for="type" class="block text-sm font-medium mb-1">Type:</label>
-          <select id="type" bind:value={commitData.type} class="w-full p-2 border rounded">
-            <option value="">Select type...</option>
-            {#each commitTypes as { value, label }}
-              <option {value}>{label}</option>
-            {/each}
-          </select>
-        </div>
-        <div>
-          <label for="scope" class="block text-sm font-medium mb-1">Scope (optional):</label>
-          <input type="text" id="scope" bind:value={commitData.scope} placeholder="e.g., auth, ui, api" class="w-full p-2 border rounded">
-        </div>
-        <div>
-          <label for="description" class="block text-sm font-medium mb-1">Description:</label>
-          <input type="text" id="description" bind:value={commitData.description} placeholder="Brief description of changes" maxlength="72" class="w-full p-2 border rounded">
-        </div>
-        <div>
-          <label for="body" class="block text-sm font-medium mb-1">Body (optional):</label>
-          <textarea id="body" rows="4" bind:value={commitData.body} placeholder="Detailed description of changes" class="w-full p-2 border rounded"></textarea>
-        </div>
-        <div>
-          <label for="footer" class="block text-sm font-medium mb-1">Footer (optional):</label>
-          <textarea id="footer" rows="2" bind:value={commitData.footer} placeholder="e.g., Closes #123, Breaking change info" class="w-full p-2 border rounded"></textarea>
-        </div>
-      </div>
+      <FormView bind:commitData />
     {:else}
-      <div>
-        <label for="commit-text" class="block text-sm font-medium mb-1">Commit Message:</label>
-        <textarea id="commit-text" rows="10" bind:value={textContent} placeholder="Write your commit message here..." class="w-full p-2 border rounded"></textarea>
-      </div>
+      <TextView bind:value={textContent} />
     {/if}
+    <Preview text={preview} />
+  </div>
 
-    <div class="mt-6">
-      <h3 class="text-lg font-semibold mb-2">📋 Preview:</h3>
-      <pre class="bg-gray-100 p-4 rounded text-sm whitespace-pre-wrap">{preview || 'No content yet...'}</pre>
-    </div>
-
-    <div class="flex justify-end space-x-2 mt-6">
-      <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300" on:click={cancel}>❌ Cancel</button>
-      <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" on:click={saveCommit}>💾 Save Commit</button>
-    </div>
+  <div class="flex-shrink-0 mt-4">
+    <Actions on:save={saveCommit} on:cancel={cancel} />
   </div>
 </main>
+
+<style>
+  /* Simple scrollbar styling for webkit browsers */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 20px;
+    border: transparent;
+  }
+</style>

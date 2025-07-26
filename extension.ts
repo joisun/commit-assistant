@@ -29,7 +29,7 @@ class CommitEditorPanel {
 
     const panel = vscode.window.createWebviewPanel(CommitEditorPanel.viewType, 'Commit Assistant', column || vscode.ViewColumn.One, {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'webview'))],
+      localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'out'))],
     })
 
     CommitEditorPanel.currentPanel = new CommitEditorPanel(panel, extensionPath)
@@ -51,6 +51,9 @@ class CommitEditorPanel {
             return
           case 'cancel':
             this._panel.dispose()
+            return
+          case 'showError':
+            vscode.window.showErrorMessage(message.text)
             return
         }
       },

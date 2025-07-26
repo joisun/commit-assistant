@@ -4,11 +4,12 @@ import commonjs from '@rollup/plugin-commonjs'
 import terser from '@rollup/plugin-terser'
 import sveltePreprocess from 'svelte-preprocess'
 import typescript from '@rollup/plugin-typescript'
-import css from 'rollup-plugin-css-only'
+import postcss from 'rollup-plugin-postcss'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import tailwindcss from 'tailwindcss'
 import autoprefixer from 'autoprefixer'
+import tailwindConfig from './tailwind.config.mjs'
 
 const production = !process.env.ROLLUP_WATCH
 
@@ -24,15 +25,17 @@ export default {
     svelte({
       preprocess: sveltePreprocess({
         sourceMap: !production,
-        postcss: {
-          plugins: [tailwindcss, autoprefixer],
-        },
       }),
       compilerOptions: {
         dev: !production,
       },
+      emitCss: true,
     }),
-    css({ output: 'bundle.css' }),
+    postcss({
+      plugins: [tailwindcss(tailwindConfig), autoprefixer],
+      extract: 'bundle.css',
+      minimize: production,
+    }),
     resolve({
       browser: true,
       dedupe: ['svelte'],
