@@ -1,0 +1,95 @@
+{
+  "name": "commit-assistant",
+  "displayName": "Commit Assistant",
+  "description": "Smart commit message editor that helps you write better commit messages",
+  "version": "0.1.0",
+  "publisher": "your-publisher-name",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "commit",
+    "message",
+    "assistant",
+    "smart",
+    "conventional"
+  ],
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/commit-assistant"
+  },
+  "activationEvents": [
+    "onCommand:commitAssistant.openEditor"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "commitAssistant.openEditor",
+        "title": "Open Commit Editor",
+        "category": "Git",
+        "icon": "$(edit)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "commitAssistant.openEditor",
+          "group": "navigation@1",
+          "title": "Assistant",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Commit Assistant",
+      "properties": {
+        "commitAssistant.defaultView": {
+          "type": "string",
+          "default": "form",
+          "enum": [
+            "form",
+            "text"
+          ],
+          "description": "Default view when opening the editor"
+        },
+        "commitAssistant.saveAndClose": {
+          "type": "boolean",
+          "default": false,
+          "description": "Close editor after saving commit message"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build:webview": "rollup -c",
+    "build": "npm run compile && npm run build:webview"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.70.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "rollup": "^3.15.0",
+    "rollup-plugin-css-only": "^4.3.0",
+    "rollup-plugin-svelte": "^7.1.0",
+    "@rollup/plugin-terser": "^0.4.0",
+    "svelte": "^3.55.0",
+    "svelte-preprocess": "^5.0.0",
+    "tailwindcss": "^3.4.3",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.0"
+  }
+}
