@@ -17,11 +17,14 @@ const sharedPlugins = (isSettings = false) => [
   svelte({
     preprocess: sveltePreprocess({
       sourceMap: !production,
+      typescript: {
+        tsconfigFile: './webviews/tsconfig.json',
+      },
     }),
     compilerOptions: {
       dev: !production,
     },
-    emitCss: true,
+    emitCss: !isSettings, // Only emit CSS for the main bundle
   }),
   postcss({
     plugins: [tailwindcss(tailwindConfig), autoprefixer],
@@ -37,8 +40,6 @@ const sharedPlugins = (isSettings = false) => [
     sourceMap: !production,
     inlineSources: !production,
     tsconfig: path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'webviews/tsconfig.json'),
-    include: ['**/*.ts'],
-    exclude: ['**/*.svelte'],
   }),
   production && terser(),
 ]
@@ -58,14 +59,37 @@ export default [
     },
   },
   {
-    input: 'webviews/commit-editor/settings.ts',
+    input: 'webviews/settings/main.ts',
     output: {
       sourcemap: !production,
       format: 'iife',
       name: 'settingsApp',
       file: 'out/webview/settings-bundle.js',
     },
-    plugins: sharedPlugins(true),
+    plugins: [
+      svelte({
+        preprocess: sveltePreprocess({
+          sourceMap: !production,
+          typescript: {
+            tsconfigFile: './webviews/tsconfig.json',
+          },
+        }),
+        compilerOptions: {
+          dev: !production,
+        },
+      }),
+      resolve({
+        browser: true,
+        dedupe: ['svelte'],
+      }),
+      commonjs(),
+      typescript({
+        sourceMap: !production,
+        inlineSources: !production,
+        tsconfig: path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'webviews/tsconfig.json'),
+      }),
+      production && terser(),
+    ],
     watch: {
       clearScreen: false,
     },

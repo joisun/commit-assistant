@@ -44,7 +44,7 @@ class CommitEditorPanel {
     const panel = vscode.window.createWebviewPanel(CommitEditorPanel.viewType, 'Commit Assistant', column || vscode.ViewColumn.One, {
       enableScripts: true,
       retainContextWhenHidden: true,
-      localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
+      localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out', 'webview'))],
     })
 
     CommitEditorPanel.currentPanel = new CommitEditorPanel(panel, context)
