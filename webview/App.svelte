@@ -3,14 +3,13 @@
   import Tabs from './components/Tabs.svelte';
   import FormView from './components/FormView.svelte';
   import TextView from './components/TextView.svelte';
-  import Preview from './components/Preview.svelte';
   import Actions from './components/Actions.svelte';
+  import FlagsView from './components/FlagsView.svelte';
 
   // @ts-ignore
   const vscode = acquireVsCodeApi();
 
-  let currentTab: 'form' | 'text' = 'form';
-  let preview = '';
+  let currentTab: 'form' | 'text' | 'flags' = 'form';
 
   let commitData = {
     type: '',
@@ -18,19 +17,34 @@
     description: '',
     body: '',
     footer: '',
+    selectedFlags: [] as { flag: string; theme: string }[],
   };
 
   let textContent = '';
+  let flags: Record<string, string[]> = {};
+  let preview = '';
 
   function generateCommitFromForm() {
-    const { type, scope, description, body, footer } = commitData;
+    const { type, scope, description, body, footer, selectedFlags } = commitData;
     if (!type || !description) return '';
-    
+
     let message = type;
     if (scope) message += `(${scope})`;
     message += `: ${description}`;
     if (body) message += `\n\n${body}`;
-    if (footer) message += `\n\n${footer}`;
+
+    const flagFooters = selectedFlags
+      .filter(item => item.flag && item.theme)
+      .map(item => `#${item.flag}:${item.theme}`);
+
+    let finalFooter = footer;
+    if (flagFooters.length > 0) {
+      const allFlagFooters = flagFooters.join('\n');
+      finalFooter = finalFooter ? `${finalFooter}\n${allFlagFooters}` : allFlagFooters;
+    }
+
+    if (finalFooter) message += `\n\n${finalFooter}`;
+
     return message;
   }
 
@@ -46,18 +60,6 @@
     vscode.postMessage({ command: 'cancel' });
   }
 
-  function saveState() {
-    vscode.setState({ currentTab, commitData, textContent });
-  }
-
-  function loadState() {
-    const state = vscode.getState();
-    if (!state) return;
-    currentTab = state.currentTab || 'form';
-    commitData = state.commitData || commitData;
-    textContent = state.textContent || '';
-  }
-
   function handleKeydown(event: KeyboardEvent) {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       event.preventDefault();
@@ -70,14 +72,34 @@
   }
 
   onMount(() => {
-    loadState();
-    window.addEventListener('beforeunload', saveState);
-    document.addEventListener('keydown', handleKeydown);
-  });
+    const handleMessage = (event: MessageEvent) => {
+      const message = event.data;
+      if (message.command === 'loadState') {
+        const state = message.state;
+        if (!state) return;
 
-  onDestroy(() => {
-    window.removeEventListener('beforeunload', saveState);
-    document.removeEventListener('keydown', handleKeydown);
+        currentTab = state.currentTab || 'form';
+        const loadedCommitData = state.commitData;
+        if (loadedCommitData) {
+          commitData.type = loadedCommitData.type || '';
+          commitData.scope = loadedCommitData.scope || '';
+          commitData.description = loadedCommitData.description || '';
+          commitData.body = loadedCommitData.body || '';
+          commitData.footer = loadedCommitData.footer || '';
+          commitData.selectedFlags = loadedCommitData.selectedFlags || [];
+        }
+        textContent = state.textContent || '';
+        flags = state.flags || {};
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    document.addEventListener('keydown', handleKeydown);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      document.removeEventListener('keydown', handleKeydown);
+    };
   });
 
   $: {
@@ -86,9 +108,15 @@
     } else {
       preview = textContent;
     }
-    // This makes the block reactive to commitData
+    // This makes the block reactive to commitData and flags
     JSON.stringify(commitData);
-    saveState();
+    JSON.stringify(flags);
+    
+    // Post the state to the extension host
+    vscode.postMessage({
+      command: 'saveState',
+      state: { currentTab, commitData, textContent, flags }
+    });
   }
 </script>
 
@@ -98,18 +126,22 @@
     <Tabs bind:currentTab />
   </div>
 
-  <div class="flex-grow overflow-y-auto">
+  <div class="flex-grow overflow-y-auto mt-4">
     {#if currentTab === 'form'}
       <FormView
         {commitData}
+        {flags}
         on:change={(e) => {
           commitData = e.detail;
         }}
       />
-    {:else}
+    {:else if currentTab === 'text'}
       <TextView bind:value={textContent} />
+    {:else if currentTab === 'flags'}
+      <FlagsView
+        bind:flags
+      />
     {/if}
-    <Preview text={preview} />
   </div>
 
   <div class="flex-shrink-0 mt-4">

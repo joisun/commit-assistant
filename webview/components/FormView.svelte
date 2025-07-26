@@ -1,5 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import FlagRow from './FlagRow.svelte';
+  import Plus from './icons/Plus.svelte';
 
   export let commitData: {
     type: string;
@@ -7,7 +9,10 @@
     description: string;
     body: string;
     footer: string;
+    selectedFlags: { flag: string; theme: string }[];
   };
+
+  export let flags: Record<string, string[]> = {};
 
   const dispatch = createEventDispatcher();
 
@@ -21,12 +26,49 @@
     { value: 'chore', label: 'chore: Maintenance tasks' },
   ];
 
-  function update(field: keyof typeof commitData, value: string) {
-    dispatch('change', { ...commitData, [field]: value });
+  function update(field: keyof Omit<typeof commitData, 'selectedFlags'>, value: string) {
+    const newCommitData = { ...commitData, [field]: value };
+    dispatch('change', newCommitData);
+  }
+
+  function addFlagRow() {
+    commitData.selectedFlags = [...commitData.selectedFlags, { flag: '', theme: '' }];
+    dispatch('change', commitData);
+  }
+
+  function handleFlagUpdate(index: number, detail: { field: 'flag' | 'theme', value: string }) {
+    commitData.selectedFlags[index][detail.field] = detail.value;
+    if (detail.field === 'flag') {
+      commitData.selectedFlags[index].theme = '';
+    }
+    dispatch('change', commitData);
+  }
+
+  function handleFlagRemove(index: number) {
+    commitData.selectedFlags = commitData.selectedFlags.filter((_, i) => i !== index);
+    dispatch('change', commitData);
   }
 </script>
 
 <div class="space-y-4">
+  <div>
+    <label class="block text-sm font-medium mb-1">Flags <span class="text-gray-400">(optional)</span></label>
+    <div class="space-y-2">
+      {#each commitData.selectedFlags as { flag, theme }, index}
+        <FlagRow
+          selectedFlag={flag}
+          selectedTheme={theme}
+          availableFlags={flags}
+          on:update={(e) => handleFlagUpdate(index, e.detail)}
+          on:remove={() => handleFlagRemove(index)}
+        />
+      {/each}
+      <button on:click={addFlagRow} class="add-flag-button">
+        <Plus />
+        <span>Add Flag</span>
+      </button>
+    </div>
+  </div>
   <div>
     <label for="type" class="block text-sm font-medium mb-1">Type</label>
     <select
@@ -92,7 +134,9 @@
   label {
     color: var(--vscode-foreground);
   }
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1px solid var(--vscode-input-border);
@@ -100,7 +144,9 @@
     padding: 4px;
     font-size: var(--vscode-font-size);
   }
-  input:focus, select:focus, textarea:focus {
+  input:focus,
+  select:focus,
+  textarea:focus {
     outline: 1px solid var(--vscode-focusBorder);
     outline-offset: -1px;
   }
@@ -112,5 +158,20 @@
     background-position: right 0.5rem center;
     background-size: 1em;
     padding-right: 2rem;
+  }
+  .add-flag-button {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: none;
+    border: 1px solid var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    padding: 2px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+  }
+  .add-flag-button:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
   }
 </style>

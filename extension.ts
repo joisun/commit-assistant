@@ -1,11 +1,19 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
 
+// Define the shape of the state object
+interface WebviewState {
+  currentTab: 'form' | 'text' | 'flags'
+  commitData: any
+  textContent: string
+  flags: Record<string, string[]>
+}
+
 export function activate(context: vscode.ExtensionContext) {
   console.log('Commit Assistant is now active!')
 
   const disposable = vscode.commands.registerCommand('commitAssistant.openEditor', () => {
-    CommitEditorPanel.createOrShow(context.extensionPath)
+    CommitEditorPanel.createOrShow(context)
   })
 
   context.subscriptions.push(disposable)
@@ -16,10 +24,10 @@ class CommitEditorPanel {
   public static readonly viewType = 'commitEditor'
 
   private readonly _panel: vscode.WebviewPanel
-  private readonly _extensionPath: string
+  private readonly _context: vscode.ExtensionContext
   private _disposables: vscode.Disposable[] = []
 
-  public static createOrShow(extensionPath: string) {
+  public static createOrShow(context: vscode.ExtensionContext) {
     const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
     if (CommitEditorPanel.currentPanel) {
@@ -29,15 +37,16 @@ class CommitEditorPanel {
 
     const panel = vscode.window.createWebviewPanel(CommitEditorPanel.viewType, 'Commit Assistant', column || vscode.ViewColumn.One, {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'out'))],
+      retainContextWhenHidden: true,
+      localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))],
     })
 
-    CommitEditorPanel.currentPanel = new CommitEditorPanel(panel, extensionPath)
+    CommitEditorPanel.currentPanel = new CommitEditorPanel(panel, context)
   }
 
-  private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
+  private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
     this._panel = panel
-    this._extensionPath = extensionPath
+    this._context = context
 
     this._update()
 
@@ -54,6 +63,9 @@ class CommitEditorPanel {
             return
           case 'showError':
             vscode.window.showErrorMessage(message.text)
+            return
+          case 'saveState':
+            this._context.workspaceState.update('state', message.state)
             return
         }
       },
@@ -85,13 +97,19 @@ class CommitEditorPanel {
     const webview = this._panel.webview
     this._panel.title = 'Commit Assistant'
     this._panel.webview.html = this._getHtmlForWebview(webview)
+
+    // Send stored state to the webview
+    const storedState = this._context.workspaceState.get<WebviewState>('state')
+    if (storedState) {
+      this._panel.webview.postMessage({ command: 'loadState', state: storedState })
+    }
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
-    const scriptPathOnDisk = vscode.Uri.file(path.join(this._extensionPath, 'out', 'webview', 'bundle.js'))
+    const scriptPathOnDisk = vscode.Uri.file(path.join(this._context.extensionPath, 'out', 'webview', 'bundle.js'))
     const scriptUri = webview.asWebviewUri(scriptPathOnDisk)
 
-    const stylePathOnDisk = vscode.Uri.file(path.join(this._extensionPath, 'out', 'webview', 'bundle.css'))
+    const stylePathOnDisk = vscode.Uri.file(path.join(this._context.extensionPath, 'out', 'webview', 'bundle.css'))
     const styleUri = webview.asWebviewUri(stylePathOnDisk)
 
     const nonce = getNonce()
