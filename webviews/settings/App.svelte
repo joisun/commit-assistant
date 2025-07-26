@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { tick } from 'svelte'
   import Eye from './components/icons/Eye.svelte'
   import EyeOff from './components/icons/EyeOff.svelte'
 
@@ -19,6 +20,7 @@
 
   interface AllSettings {
     activeProvider: string
+    language: 'en' | 'zh'
     providers: {
       [key: string]: ProviderSettings
     }
@@ -27,6 +29,7 @@
   // State
   let settings: AllSettings = {
     activeProvider: 'openai',
+    language: 'en',
     providers: {},
   }
 
@@ -75,26 +78,42 @@
     errorMessage = ''
     apiKeyVisible = false // Hide API key on provider switch
     getModels()
+    debouncedSave() // Also save on provider change
   }
 
-  function saveSettings() {
+  // Debounce function
+  function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: number
+    return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
+      clearTimeout(timeout)
+      timeout = window.setTimeout(() => func.apply(this, args), wait)
+    }
+  }
+
+  // Debounced save function
+  const debouncedSave = debounce(() => {
+    // No need to check hasLoaded anymore, as it's triggered by user events
     vscode.postMessage({
       command: 'saveAiSettings',
       settings: settings,
     })
-  }
+  }, 1000) // Save after 1 second of inactivity
 
+  // No longer need a watcher. Saving is triggered by events.
+  // $: if (settings) { ... }
+
+  // No longer need hasLoaded flag
+  // let hasLoaded = false;
   onMount(() => {
     const handleMessage = (event: MessageEvent) => {
       const message = event.data
       switch (message.command) {
         case 'loadSettings':
-          if (message.settings) {
-            settings = message.settings
-            // Ensure providers object exists
-            if (!settings.providers) {
-              settings.providers = {}
-            }
+          const loadedSettings = message.settings || {}
+          settings = {
+            activeProvider: loadedSettings.activeProvider || 'openai',
+            language: loadedSettings.language || 'en',
+            providers: loadedSettings.providers || {},
           }
           // Ensure all provider keys exist after loading
           for (const p of providerIds) {
@@ -103,6 +122,9 @@
             }
           }
           getModels()
+          tick().then(() => {
+            // hasLoaded = true
+          })
           break
         case 'loadModels':
           isLoadingModels = false
@@ -126,7 +148,9 @@
 </script>
 
 <div class="p-4 space-y-6">
-  <h2 class="text-lg font-bold">AI Provider Settings</h2>
+  <h2 class="text-lg font-bold">Settings</h2>
+
+  <h3 class="text-lg font-bold">AI Provider Settings</h3>
 
   <div class="space-y-4">
     <div class="space-y-2">
@@ -141,9 +165,9 @@
     <div class="space-y-2 relative">
       <label for="apiKey" class="block text-sm font-medium">API Key</label>
       {#if apiKeyVisible}
-        <input id="apiKey" type="text" class="w-full pr-10" bind:value={currentProviderSettings.apiKey} on:blur={getModels} placeholder="Enter your API key" />
+        <input id="apiKey" type="text" class="w-full pr-10" bind:value={currentProviderSettings.apiKey} on:blur={getModels} on:input={debouncedSave} placeholder="Enter your API key" />
       {:else}
-        <input id="apiKey" type="password" class="w-full pr-10" bind:value={currentProviderSettings.apiKey} on:blur={getModels} placeholder="Enter your API key" />
+        <input id="apiKey" type="password" class="w-full pr-10" bind:value={currentProviderSettings.apiKey} on:blur={getModels} on:input={debouncedSave} placeholder="Enter your API key" />
       {/if}
       <button class="absolute inset-y-0 right-0 top-6 flex items-center pr-3" on:click={() => (apiKeyVisible = !apiKeyVisible)} title={apiKeyVisible ? 'Hide API Key' : 'Show API Key'}>
         {#if apiKeyVisible}
@@ -157,14 +181,14 @@
     {#if showBaseUrlInput}
       <div class="space-y-2">
         <label for="baseUrl" class="block text-sm font-medium">API Base URL (Required)</label>
-        <input id="baseUrl" type="text" class="w-full" bind:value={currentProviderSettings.baseUrl} on:blur={getModels} placeholder="e.g., https://api.example.com/v1" />
+        <input id="baseUrl" type="text" class="w-full" bind:value={currentProviderSettings.baseUrl} on:blur={getModels} on:input={debouncedSave} placeholder="e.g., https://api.example.com/v1" />
         <p class="text-sm" style="color: var(--vscode-descriptionForeground);">The custom endpoint must be compatible with the OpenAI API spec.</p>
       </div>
     {/if}
 
     <div class="space-y-2">
       <label for="model" class="block text-sm font-medium">Model</label>
-      <select id="model" class="w-full" bind:value={currentProviderSettings.model} disabled={isLoadingModels || availableModels.length === 0}>
+      <select id="model" class="w-full" bind:value={currentProviderSettings.model} on:change={debouncedSave} disabled={isLoadingModels || availableModels.length === 0}>
         {#if isLoadingModels}
           <option value="">Loading models...</option>
         {:else if availableModels.length > 0}
@@ -177,22 +201,23 @@
       </select>
     </div>
 
-    <div class="pt-2">
-      <button
-        class="w-full inline-flex justify-center py-1 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md"
-        style="background-color: var(--vscode-button-background); color: var(--vscode-button-foreground);"
-        on:click={saveSettings}
-      >
-        Save AI Configuration
-      </button>
-    </div>
-
     {#if errorMessage}
       <div class="border-t" style="border-color: var(--vscode-input-border); margin-top: 1rem; padding-top: 1rem;">
         <p class="text-sm font-medium" style="color: var(--vscode-errorForeground);">Error Details:</p>
         <pre class="text-xs whitespace-pre-wrap" style="color: var(--vscode-descriptionForeground);">{errorMessage}</pre>
       </div>
     {/if}
+  </div>
+
+  <div class="border-t" style="border-color: var(--vscode-input-border);"></div>
+
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold">Language</h3>
+    <p class="text-sm" style="color: var(--vscode-descriptionForeground);">Select the language for AI-generated content.</p>
+    <select id="language" class="w-full" bind:value={settings.language} on:change={debouncedSave}>
+      <option value="en">English</option>
+      <option value="zh">中文 (Chinese)</option>
+    </select>
   </div>
 </div>
 

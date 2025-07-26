@@ -53,7 +53,69 @@
     },
     "configuration": {
       "title": "Commit Assistant",
-      "properties": {}
+      "properties": {
+        "commitAssistant.commitTypes": {
+          "type": "array",
+          "default": [
+            {
+              "value": "feat",
+              "label": "feat",
+              "description": "A new feature"
+            },
+            {
+              "value": "fix",
+              "label": "fix",
+              "description": "A bug fix"
+            },
+            {
+              "value": "docs",
+              "label": "docs",
+              "description": "Documentation only changes"
+            },
+            {
+              "value": "style",
+              "label": "style",
+              "description": "Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)"
+            },
+            {
+              "value": "refactor",
+              "label": "refactor",
+              "description": "A code change that neither fixes a bug nor adds a feature"
+            },
+            {
+              "value": "perf",
+              "label": "perf",
+              "description": "A code change that improves performance"
+            },
+            {
+              "value": "test",
+              "label": "test",
+              "description": "Adding missing tests or correcting existing tests"
+            },
+            {
+              "value": "build",
+              "label": "build",
+              "description": "Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)"
+            },
+            {
+              "value": "ci",
+              "label": "ci",
+              "description": "Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)"
+            },
+            {
+              "value": "chore",
+              "label": "chore",
+              "description": "Other changes that don't modify src or test files"
+            },
+            {
+              "value": "revert",
+              "label": "revert",
+              "description": "Reverts a previous commit"
+            }
+          ],
+          "description": "The list of commit types to display in the type selector. Override this in your user or workspace settings."
+        }
+      }
     }
   },
   "scripts": {

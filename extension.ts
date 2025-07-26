@@ -19,6 +19,7 @@ interface ProviderSettings {
 
 interface AllSettings {
   activeProvider: string
+  language: 'en' | 'zh'
   providers: {
     [key: string]: ProviderSettings
   }
@@ -119,11 +120,26 @@ class CommitEditorPanel {
     this._panel.title = 'Commit Assistant'
     this._panel.webview.html = this._getHtmlForWebview(webview)
 
+    this._sendConfig()
+
     // Send stored state to the webview
     const storedState = this._context.workspaceState.get<WebviewState>('state')
     if (storedState) {
       this._panel.webview.postMessage({ command: 'loadState', state: storedState })
     }
+  }
+
+  private _sendConfig() {
+    const config = vscode.workspace.getConfiguration('commitAssistant')
+    const commitTypes = config.get('commitTypes')
+    // We could also get flags from config in the future
+    this._panel.webview.postMessage({
+      command: 'loadConfig',
+      config: {
+        commitTypes,
+        flags: {}, // Placeholder for future flag configuration
+      },
+    })
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
