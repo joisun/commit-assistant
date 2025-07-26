@@ -32,9 +32,9 @@
     "commands": [
       {
         "command": "commitAssistant.openEditor",
-        "title": "Open Commit Editor",
+        "title": "Open Commit Assistant",
         "category": "Git",
-        "icon": "$(edit)"
+        "icon": "$(wand)"
       },
       {
         "command": "commitAssistant.openSettings",
