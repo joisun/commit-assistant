@@ -1,14 +1,52 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   export let value: string;
+  let textarea: HTMLTextAreaElement;
+
+  function autoGrow() {
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }
+
+  onMount(() => {
+    autoGrow();
+  });
+
+  $: if (value) {
+    if (textarea) {
+      autoGrow();
+    }
+  }
 </script>
 
 <div>
-  <label for="commit-text" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Commit Message:</label>
+  <label for="commit-text" class="block text-sm font-medium mb-1">Commit Message</label>
   <textarea
+    bind:this={textarea}
     id="commit-text"
-    rows="10"
+    rows="4"
     bind:value
+    on:input={autoGrow}
     placeholder="Write your commit message here..."
-    class="w-full p-2 border rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:text-gray-200"
+    class="w-full resize-none overflow-hidden"
   ></textarea>
 </div>
+
+<style>
+  label {
+    color: var(--vscode-foreground);
+  }
+  textarea {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 2px;
+    padding: 4px;
+    font-size: var(--vscode-font-size);
+  }
+  textarea:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+  }
+</style>

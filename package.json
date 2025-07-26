@@ -72,7 +72,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "build:webview": "rollup -c",
-    "build": "npm run compile && npm run build:webview"
+    "build": "npm run compile && npm run build:webview",
+    "build:watch": "npm run compile && npm run build:webview -- --watch"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.0",

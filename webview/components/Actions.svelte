@@ -4,17 +4,46 @@
   const dispatch = createEventDispatcher();
 </script>
 
-<div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+<div class="flex justify-end space-x-2 pt-3 border-t">
   <button
-    class="px-4 py-2 rounded-md text-sm font-medium bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+    class="px-3 py-1 rounded text-sm font-medium"
     on:click={() => dispatch('cancel')}
   >
     Cancel
   </button>
   <button
-    class="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+    class="px-2 py-1 rounded text-xs font-medium"
     on:click={() => dispatch('save')}
   >
     Save Commit
   </button>
 </div>
+
+<style>
+  div {
+    border-color: var(--vscode-editorWidget-border);
+  }
+  button {
+    border: 1px solid var(--vscode-button-border, transparent);
+    border-radius: 2px;
+    font-size: var(--vscode-font-size);
+  }
+  button:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+  }
+  button:hover {
+    background-color: var(--vscode-button-hoverBackground);
+  }
+  button:nth-of-type(1) {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+  }
+  button:nth-of-type(1):hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+  }
+  button:nth-of-type(2) {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+  }
+</style>

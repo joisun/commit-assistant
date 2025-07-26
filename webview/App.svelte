@@ -86,19 +86,26 @@
     } else {
       preview = textContent;
     }
+    // This makes the block reactive to commitData
+    JSON.stringify(commitData);
     saveState();
   }
 </script>
 
-<main class="bg-white dark:bg-gray-900 text-black dark:text-white p-4 sm:p-6 font-sans flex flex-col h-screen">
+<main class="p-4 sm:p-6 font-sans flex flex-col h-screen">
   <div class="flex-shrink-0">
     <h1 class="text-xl font-bold mb-4">🤖 Commit Assistant</h1>
     <Tabs bind:currentTab />
   </div>
 
-  <div class="flex-grow overflow-y-auto pr-2 -mr-2">
+  <div class="flex-grow overflow-y-auto">
     {#if currentTab === 'form'}
-      <FormView bind:commitData />
+      <FormView
+        {commitData}
+        on:change={(e) => {
+          commitData = e.detail;
+        }}
+      />
     {:else}
       <TextView bind:value={textContent} />
     {/if}
@@ -111,16 +118,8 @@
 </main>
 
 <style>
-  /* Simple scrollbar styling for webkit browsers */
-  .overflow-y-auto::-webkit-scrollbar {
-    width: 6px;
-  }
-  .overflow-y-auto::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .overflow-y-auto::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.5);
-    border-radius: 20px;
-    border: transparent;
+  :global(body) {
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
   }
 </style>
