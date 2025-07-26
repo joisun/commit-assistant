@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
+import { getAvailableModels } from './src/ai/ai-service'
 
 // Define the shape of the state object
 interface WebviewState {
@@ -7,6 +8,20 @@ interface WebviewState {
   commitData: any
   textContent: string
   flags: Record<string, string[]>
+}
+
+// New interfaces for our settings structure
+interface ProviderSettings {
+  apiKey: string
+  model: string
+  baseUrl?: string
+}
+
+interface AllSettings {
+  activeProvider: string
+  providers: {
+    [key: string]: ProviderSettings
+  }
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -81,12 +96,6 @@ class CommitEditorPanel {
       null,
       this._disposables
     )
-
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('commitAssistant')) {
-        // Settings are handled in the settings panel now
-      }
-    })
   }
 
   private _saveCommitMessage(commitMessage: string) {
@@ -99,10 +108,7 @@ class CommitEditorPanel {
 
       vscode.window.showInformationMessage('Commit message saved!')
 
-      const config = vscode.workspace.getConfiguration('commitAssistant')
-      if (config.get('saveAndClose')) {
-        this._panel.dispose()
-      }
+      this._panel.dispose()
     } else {
       vscode.window.showErrorMessage('No Git repository found!')
     }
@@ -133,7 +139,7 @@ class CommitEditorPanel {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:; script-src 'nonce-${nonce}';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="${styleUri}" rel="stylesheet">
     <title>Commit Assistant</title>
@@ -192,44 +198,58 @@ class SettingsPanel {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
 
     this._panel.webview.onDidReceiveMessage(
-      (message) => {
-        if (message.command === 'updateSetting') {
-          vscode.workspace.getConfiguration('commitAssistant').update(message.key, message.value, vscode.ConfigurationTarget.Global)
+      async (message) => {
+        switch (message.command) {
+          case 'saveAiSettings':
+            await this._context.globalState.update('aiSettings', message.settings)
+            vscode.window.showInformationMessage('AI settings saved successfully!')
+            return
+          case 'getModels':
+            try {
+              const models = await getAvailableModels(message.provider, message.apiKey, message.baseUrl)
+              this._panel.webview.postMessage({
+                command: 'loadModels',
+                models: models,
+              })
+            } catch (error: any) {
+              vscode.window.showErrorMessage(`Failed to fetch AI models: ${error.message}`)
+              this._panel.webview.postMessage({
+                command: 'loadModelsError',
+                error: error.message,
+              })
+            }
+            return
+          case 'requestInitialSettings':
+            this._sendAllSettings()
+            return
         }
       },
       null,
       this._disposables
     )
+  }
 
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('commitAssistant')) {
-        this._sendSettings()
-      }
+  private _sendAllSettings() {
+    const storedSettings = this._context.globalState.get<AllSettings>('aiSettings')
+
+    this._panel.webview.postMessage({
+      command: 'loadSettings',
+      settings: storedSettings, // Send stored settings directly
     })
   }
 
   private _sendSettings() {
-    const config = vscode.workspace.getConfiguration('commitAssistant')
-    this._panel.webview.postMessage({
-      command: 'loadSettings',
-      settings: {
-        defaultView: config.get('defaultView'),
-        saveAndClose: config.get('saveAndClose'),
-      },
-    })
+    // This function is no longer needed as we are not listening to configuration changes.
   }
 
   private _update() {
     this._panel.webview.html = this._getHtmlForWebview(this._panel.webview)
-    this._sendSettings()
+    this._sendAllSettings()
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
-    const scriptPathOnDisk = vscode.Uri.file(path.join(this._context.extensionPath, 'out', 'webview', 'settings-bundle.js'))
-    const scriptUri = webview.asWebviewUri(scriptPathOnDisk)
-
-    const stylePathOnDisk = vscode.Uri.file(path.join(this._context.extensionPath, 'out', 'webview', 'bundle.css'))
-    const styleUri = webview.asWebviewUri(stylePathOnDisk)
+    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'webview', 'settings-bundle.js'))
+    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'webview', 'settings-bundle.css'))
 
     const nonce = getNonce()
 
@@ -237,7 +257,7 @@ class SettingsPanel {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:; script-src 'nonce-${nonce}';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="${styleUri}" rel="stylesheet">
     <title>Commit Assistant Settings</title>

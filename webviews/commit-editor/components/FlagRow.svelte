@@ -1,31 +1,27 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import Minus from './icons/Minus.svelte';
+  import { createEventDispatcher } from 'svelte'
+  import Minus from './icons/Minus.svelte'
 
-  export let selectedFlag: string;
-  export let selectedTheme: string;
-  export let availableFlags: Record<string, string[]> = {};
+  export let selectedFlag: string
+  export let selectedTheme: string
+  export let availableFlags: Record<string, string[]> = {}
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
 
   function update(field: 'flag' | 'theme', value: string) {
-    dispatch('update', { field, value });
+    dispatch('update', { field, value })
   }
 
   function remove() {
-    dispatch('remove');
+    dispatch('remove')
   }
 
-  $: availableThemes = availableFlags[selectedFlag] || [];
+  $: availableThemes = availableFlags[selectedFlag] || []
 </script>
 
 <div class="flex items-center space-x-2">
   <div class="flex-1">
-    <select
-      class="w-full"
-      value={selectedFlag}
-      on:change={(e) => update('flag', e.currentTarget.value)}
-    >
+    <select class="w-full" value={selectedFlag} on:change={(e) => update('flag', e.currentTarget.value)}>
       <option value="">Select flag...</option>
       {#each Object.keys(availableFlags) as flag}
         <option value={flag}>{flag}</option>
@@ -33,12 +29,7 @@
     </select>
   </div>
   <div class="flex-1">
-    <select
-      class="w-full"
-      value={selectedTheme}
-      on:change={(e) => update('theme', e.currentTarget.value)}
-      disabled={!selectedFlag || availableThemes.length === 0}
-    >
+    <select class="w-full" value={selectedTheme} on:change={(e) => update('theme', e.currentTarget.value)} disabled={!selectedFlag || availableThemes.length === 0}>
       <option value="">Select theme...</option>
       {#each availableThemes as theme}
         <option value={theme}>{theme}</option>

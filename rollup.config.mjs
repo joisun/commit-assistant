@@ -24,11 +24,11 @@ const sharedPlugins = (isSettings = false) => [
     compilerOptions: {
       dev: !production,
     },
-    emitCss: !isSettings, // Only emit CSS for the main bundle
+    emitCss: true, // Always emit CSS
   }),
   postcss({
     plugins: [tailwindcss(tailwindConfig), autoprefixer],
-    extract: 'bundle.css',
+    extract: isSettings ? 'settings-bundle.css' : 'bundle.css', // Use different files
     minimize: production,
   }),
   resolve({
@@ -66,30 +66,7 @@ export default [
       name: 'settingsApp',
       file: 'out/webview/settings-bundle.js',
     },
-    plugins: [
-      svelte({
-        preprocess: sveltePreprocess({
-          sourceMap: !production,
-          typescript: {
-            tsconfigFile: './webviews/tsconfig.json',
-          },
-        }),
-        compilerOptions: {
-          dev: !production,
-        },
-      }),
-      resolve({
-        browser: true,
-        dedupe: ['svelte'],
-      }),
-      commonjs(),
-      typescript({
-        sourceMap: !production,
-        inlineSources: !production,
-        tsconfig: path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'webviews/tsconfig.json'),
-      }),
-      production && terser(),
-    ],
+    plugins: sharedPlugins(true), // Use shared plugins and tell it it's for settings
     watch: {
       clearScreen: false,
     },
