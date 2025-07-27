@@ -1,12 +1,24 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, createEventDispatcher } from 'svelte'
   import AITrigger from './AITrigger.svelte'
+  import FlagsInput from './FlagsInput.svelte'
 
   export let value: string
+  export let commitData: {
+    selectedFlags: { flag: string; theme: string }[]
+  }
+  export let flags: Record<string, string[]> = {}
   export let disabled = false
   export let loading = false
   export let vscode: any
   let textarea: HTMLTextAreaElement
+
+  const dispatch = createEventDispatcher()
+
+  function handleFlagsChange(event: CustomEvent) {
+    commitData.selectedFlags = event.detail
+    dispatch('change', commitData)
+  }
 
   function autoGrow() {
     textarea.style.height = 'auto'
@@ -30,6 +42,10 @@
     <AITrigger on:click={() => vscode.postMessage({ command: 'generateAiCommitForText' })} {disabled} {loading} />
   </div>
   <textarea bind:this={textarea} id="commit-text" rows="4" bind:value on:input={autoGrow} placeholder="Write your commit message here..." class="w-full resize-none overflow-hidden"></textarea>
+
+  <div class="mt-4">
+    <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} />
+  </div>
 </div>
 
 <style>

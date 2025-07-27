@@ -49,6 +49,15 @@
     return message
   }
 
+  function generateFlagFooters() {
+    const { selectedFlags } = commitData
+    if (!selectedFlags || selectedFlags.length === 0) return ''
+    return selectedFlags
+      .filter((item) => item.flag && item.theme)
+      .map((item) => `#${item.flag}:${item.theme}`)
+      .join('\n')
+  }
+
   function saveCommit() {
     if (!preview.trim()) {
       vscode.postMessage({ command: 'showError', text: 'Commit message cannot be empty.' })
@@ -130,7 +139,13 @@
     if (currentView === 'form') {
       preview = generateCommitFromForm()
     } else {
-      preview = textContent
+      const flagFooters = generateFlagFooters()
+      let message = textContent.trim()
+      if (flagFooters) {
+        // Simple heuristic to append flags. Assumes main content doesn't have footers yet.
+        message += `\n\n${flagFooters}`
+      }
+      preview = message
     }
     // This makes the block reactive to commitData and flags
     JSON.stringify(commitData)
@@ -169,7 +184,17 @@
         {vscode}
       />
     {:else if currentView === 'text'}
-      <TextView bind:value={textContent} disabled={isAiLoading} loading={isAiLoading} {vscode} />
+      <TextView
+        bind:value={textContent}
+        bind:commitData
+        {flags}
+        disabled={isAiLoading}
+        loading={isAiLoading}
+        {vscode}
+        on:change={(e) => {
+          commitData = e.detail
+        }}
+      />
     {:else if currentView === 'flags'}
       <FlagsView bind:flags />
     {/if}

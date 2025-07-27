@@ -1,9 +1,8 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import FlagRow from './FlagRow.svelte'
-  import Plus from './icons/Plus.svelte'
   import AITrigger from './AITrigger.svelte'
   import CustomSelect from './CustomSelect.svelte'
+  import FlagsInput from './FlagsInput.svelte'
 
   export let commitData: {
     type: string
@@ -27,21 +26,8 @@
     dispatch('change', newCommitData)
   }
 
-  function addFlagRow() {
-    commitData.selectedFlags = [...commitData.selectedFlags, { flag: '', theme: '' }]
-    dispatch('change', commitData)
-  }
-
-  function handleFlagUpdate(index: number, detail: { field: 'flag' | 'theme'; value: string }) {
-    commitData.selectedFlags[index][detail.field] = detail.value
-    if (detail.field === 'flag') {
-      commitData.selectedFlags[index].theme = ''
-    }
-    dispatch('change', commitData)
-  }
-
-  function handleFlagRemove(index: number) {
-    commitData.selectedFlags = commitData.selectedFlags.filter((_, i) => i !== index)
+  function handleFlagsChange(event: CustomEvent) {
+    commitData.selectedFlags = event.detail
     dispatch('change', commitData)
   }
 </script>
@@ -51,18 +37,7 @@
     <h3 class="text-base font-medium">Form</h3>
     <AITrigger on:click={() => vscode.postMessage({ command: 'generateAiCommitForForm' })} {disabled} {loading} />
   </div>
-  <div>
-    <label class="block text-sm font-medium mb-1">Flags <span class="text-gray-400">(optional)</span></label>
-    <div class="space-y-2">
-      {#each commitData.selectedFlags as { flag, theme }, index}
-        <FlagRow selectedFlag={flag} selectedTheme={theme} availableFlags={flags} on:update={(e) => handleFlagUpdate(index, e.detail)} on:remove={() => handleFlagRemove(index)} />
-      {/each}
-      <button on:click={addFlagRow} class="add-flag-button">
-        <Plus />
-        <span>Add Flag</span>
-      </button>
-    </div>
-  </div>
+  <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} />
   <div>
     <label for="type" class="block text-sm font-medium mb-1">Type</label>
     <CustomSelect items={commitTypes} selectedValue={commitData.type} on:change={(e) => update('type', e.detail)} placeholder="Select type..." />
