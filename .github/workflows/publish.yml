@@ -48,13 +48,13 @@ jobs:
           cat package.json | jq '.name, .version, .publisher'
       
       - name: Package extension
-        run: vsce package --no-dependencies
+        run: vsce package
       
       - name: List generated files
         run: ls -la *.vsix
       
       - name: Publish to VS Code Marketplace
-        run: vsce publish -p $VSCE_TOKEN --no-dependencies
+        run: vsce publish -p $VSCE_TOKEN
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
       
@@ -98,10 +98,10 @@ jobs:
         run: npm install -g @vscode/vsce
       
       - name: Package pre-release
-        run: vsce package --pre-release --no-dependencies
-      
+        run: vsce package --pre-release
+
       - name: Publish pre-release to VS Code Marketplace
-        run: vsce publish --pre-release -p $VSCE_TOKEN --no-dependencies
+        run: vsce publish --pre-release -p $VSCE_TOKEN
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
       

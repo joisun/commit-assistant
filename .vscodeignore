@@ -7,12 +7,20 @@ src/**
 # Build and development files
 .vscode-test/**
 .vscode/**
-node_modules/**
 rollup.config.mjs
 tailwind.config.mjs
 postcss.config.js
 tsconfig.json
 webviews/tsconfig.json
+
+# Exclude dev dependencies but keep production dependencies
+node_modules/**/test/**
+node_modules/**/tests/**
+node_modules/**/*.test.js
+node_modules/**/*.spec.js
+node_modules/**/README.md
+node_modules/**/CHANGELOG.md
+node_modules/**/.github/**
 
 # Development dependencies and configs
 .eslintrc.*
