@@ -22,7 +22,6 @@
   let aiFieldConfig = {
     scope: false,
     body: false,
-    footer: false,
   }
 
   const dispatch = createEventDispatcher()
@@ -56,7 +55,7 @@
     <label for="type" class="block text-sm font-medium mb-1">Type</label>
     <CustomSelect items={commitTypes} selectedValue={commitData.type} on:change={(e) => update('type', e.detail)} placeholder="Select type..." />
   </div>
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between pr-2">
     <label for="scope" class="block text-sm font-medium">Scope <span class="text-gray-400">(optional)</span></label>
     <input type="checkbox" bind:checked={aiFieldConfig.scope} title="Generate AI content for this field" />
   </div>
@@ -73,16 +72,15 @@
       maxlength="72"
     />
   </div>
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between pr-2">
     <label for="body" class="block text-sm font-medium">Body <span class="text-gray-400">(optional)</span></label>
     <input type="checkbox" bind:checked={aiFieldConfig.body} title="Generate AI content for this field" />
   </div>
   <textarea id="body" rows="4" class="w-full" value={commitData.body} on:input={(e) => update('body', e.currentTarget.value)} placeholder="Detailed description of changes"></textarea>
-  <div class="flex items-center justify-between">
-    <label for="footer" class="block text-sm font-medium">Footer <span class="text-gray-400">(optional)</span></label>
-    <input type="checkbox" bind:checked={aiFieldConfig.footer} title="Generate AI content for this field" />
+  <div>
+    <label for="footer" class="block text-sm font-medium mb-1">Footer <span class="text-gray-400">(optional)</span></label>
+    <textarea id="footer" rows="2" class="w-full" value={commitData.footer} on:input={(e) => update('footer', e.currentTarget.value)} placeholder="e.g., Closes #123, Breaking change info"></textarea>
   </div>
-  <textarea id="footer" rows="2" class="w-full" value={commitData.footer} on:input={(e) => update('footer', e.currentTarget.value)} placeholder="e.g., Closes #123, Breaking change info"></textarea>
 </div>
 
 <style>
@@ -117,5 +115,40 @@
   }
   .add-flag-button:hover {
     background-color: var(--vscode-button-secondaryHoverBackground);
+  }
+
+  input[type='checkbox'] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 3px;
+    background-color: var(--vscode-input-background);
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.15s ease-in-out;
+  }
+
+  input[type='checkbox']:checked {
+    background-color: var(--vscode-button-background);
+    border-color: var(--vscode-button-background);
+  }
+
+  input[type='checkbox']:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 4px;
+    height: 8px;
+    border: solid var(--vscode-button-foreground);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  input[type='checkbox']:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 1px;
   }
 </style>

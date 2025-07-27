@@ -159,7 +159,7 @@
   }
 </script>
 
-<main class="p-4 sm:p-6 font-sans flex flex-col h-screen">
+<main class="p-4 sm:p-6 font-sans flex flex-col h-full">
   <div class="flex-shrink-0">
     <div class="flex justify-between items-center mb-4">
       <h1 class="text-xl font-bold">🤖 Commit Assistant</h1>
@@ -170,7 +170,7 @@
     <Tabs bind:currentTab={currentView} />
   </div>
 
-  <div class="flex-grow overflow-y-auto mt-4">
+  <div class="flex-grow overflow-y-auto mt-4 pr-4">
     {#if currentView === 'form'}
       <FormView
         bind:commitData
@@ -209,5 +209,14 @@
   :global(body) {
     background-color: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  :global(html) {
+    height: 100vh;
+    overflow: hidden;
   }
 </style>
