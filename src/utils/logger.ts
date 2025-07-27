@@ -28,9 +28,8 @@ export class Logger {
   public static debug(title: string, data: any) {
     const timestamp = new Date().toISOString()
     const message = `
-==================== DEBUG: ${title} (${timestamp}) ====================
+[DEBUG] ${timestamp} ${title}:
 ${JSON.stringify(data, null, 2)}
-======================================================================
 `
     console.log(message)
   }
@@ -38,9 +37,8 @@ ${JSON.stringify(data, null, 2)}
   public static debugToOutputChannel(title: string, data: any, settings: any) {
     if (settings?.debug) {
       const message = `
---- DEBUG: ${title} ---
+[DEBUG] ${new Date().toISOString()} ${title}:
 ${JSON.stringify(data, null, 2)}
---------------------
 `
       Logger.outputChannel.appendLine(message)
     }
