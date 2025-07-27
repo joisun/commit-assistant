@@ -165,10 +165,11 @@
           commitData = e.detail
         }}
         disabled={isAiLoading}
+        loading={isAiLoading}
         {vscode}
       />
     {:else if currentView === 'text'}
-      <TextView bind:value={textContent} disabled={isAiLoading} {vscode} />
+      <TextView bind:value={textContent} disabled={isAiLoading} loading={isAiLoading} {vscode} />
     {:else if currentView === 'flags'}
       <FlagsView bind:flags />
     {/if}

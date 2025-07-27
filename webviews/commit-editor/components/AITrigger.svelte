@@ -1,28 +1,56 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, onMount, onDestroy } from 'svelte'
 
   export let disabled = false
-  let loading = false
+  export let loading = false // Now controlled by parent
+
   const dispatch = createEventDispatcher()
 
-  function handleClick() {
-    if (loading) return
+  let loadingText = 'Generating'
+  let intervalId: any
 
-    loading = true
-    dispatch('click')
-
-    // Simulate API call
-    setTimeout(() => {
-      loading = false
-    }, 2000) // 2-second simulation
+  function startLoadingAnimation() {
+    let dots = 1
+    intervalId = setInterval(() => {
+      loadingText = 'Generating' + '.'.repeat(dots)
+      dots = (dots % 3) + 1
+    }, 300)
   }
+
+  function stopLoadingAnimation() {
+    clearInterval(intervalId)
+    loadingText = 'Generating'
+  }
+
+  function handleClick() {
+    if (loading || disabled) return
+    dispatch('click')
+  }
+
+  $: {
+    if (loading) {
+      startLoadingAnimation()
+    } else {
+      stopLoadingAnimation()
+    }
+  }
+
+  onDestroy(() => {
+    stopLoadingAnimation()
+  })
 </script>
 
 <button class="ai-trigger-button" title="Generate with AI" on:click={handleClick} disabled={loading || disabled}>
-  <span>{loading ? 'Generating...' : 'AI Generate'}</span>
+  <span class="text-container">{loading ? loadingText : 'AI Generate'}</span>
 </button>
 
 <style>
+  .text-container {
+    display: inline-block;
+    min-width: 90px; /* Adjust as needed */
+    text-align: left;
+  }
+
   .ai-trigger-button {
     background: none;
     border: none;

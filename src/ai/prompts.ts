@@ -12,6 +12,15 @@ const conventionalCommitTypes = {
   fix: 'A bug fix',
 }
 
+function getTypeNames(types: any): string {
+  if (Array.isArray(types)) {
+    // Handle the array of objects from VS Code config
+    return types.map((type) => type.value).join(', ')
+  }
+  // Handle the fallback object
+  return Object.keys(types).join(', ')
+}
+
 export function generateFormPrompt(language: string, maxLength: number, commitTypes: any, diff: string): string {
   const types = commitTypes || conventionalCommitTypes
   return `
@@ -29,7 +38,7 @@ The output must be a valid JSON object with the following structure:
 }
 
 Rules:
-1.  **type**: Choose the most appropriate type from this list: ${Object.keys(types).join(', ')}.
+1.  **type**: Choose the most appropriate type from this list: ${getTypeNames(types)}.
 2.  **scope**: (Optional) Identify a short noun describing the section of the codebase the changes apply to.
 3.  **description**: Write a concise summary of the changes, no more than ${maxLength} characters.
 4.  **body**: (Optional) Provide a more detailed explanation of the changes.
@@ -47,7 +56,7 @@ ${diff}
 
 Rules:
 1.  The message must follow the conventional commit format.
-2.  Choose the most appropriate commit type from this list: ${Object.keys(types).join(', ')}.
+2.  Choose the most appropriate commit type from this list: ${getTypeNames(types)}.
 3.  The entire commit message (header, body, footer) should be no more than ${maxLength} characters in total.
 4.  Do not include any explanations or markdown formatting. Your entire response will be passed directly into git commit.
 `.trim()

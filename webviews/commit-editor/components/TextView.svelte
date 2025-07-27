@@ -4,6 +4,7 @@
 
   export let value: string
   export let disabled = false
+  export let loading = false
   export let vscode: any
   let textarea: HTMLTextAreaElement
 
@@ -26,7 +27,7 @@
 <div>
   <div class="flex justify-between items-center mb-1">
     <label for="commit-text" class="block text-sm font-medium">Commit Message</label>
-    <AITrigger on:click={() => vscode.postMessage({ command: 'generateAiCommitForText' })} {disabled} />
+    <AITrigger on:click={() => vscode.postMessage({ command: 'generateAiCommitForText' })} {disabled} {loading} />
   </div>
   <textarea bind:this={textarea} id="commit-text" rows="4" bind:value on:input={autoGrow} placeholder="Write your commit message here..." class="w-full resize-none overflow-hidden"></textarea>
 </div>

@@ -31,7 +31,7 @@ interface AllSettings {
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Commit Assistant is now active!')
-  Logger.initialize()
+  Logger.initialize(context)
 
   context.subscriptions.push(
     vscode.commands.registerCommand('commitAssistant.openEditor', () => {
@@ -143,7 +143,7 @@ class CommitEditorPanel {
         return
       }
 
-      Logger.debug('Staged Changes', diff)
+      Logger.debugToOutputChannel('Staged Changes', diff)
 
       const settings = this._context.globalState.get<AllSettings>('aiSettings')
       const config = vscode.workspace.getConfiguration('commitAssistant')
@@ -156,26 +156,26 @@ class CommitEditorPanel {
 
       const providerSettings = settings.providers[settings.activeProvider]
 
-      const result = await generateCommitMessage(
-        settings.activeProvider,
-        providerSettings.apiKey,
-        providerSettings.model,
-        settings.language,
-        settings.maxLength,
-        diff,
-        commitTypes,
-        providerSettings.baseUrl
-      )
-
       this._panel.webview.postMessage({ command: 'aiStart' })
+
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out after 30 seconds.')), 30000))
+
+      const result = (await Promise.race([
+        generateCommitMessage(settings.activeProvider, providerSettings.apiKey, providerSettings.model, settings.language, settings.maxLength, diff, commitTypes, providerSettings.baseUrl),
+        timeoutPromise,
+      ])) as any
+
       for await (const delta of result.textStream) {
         this._panel.webview.postMessage({ command: 'aiChunk', chunk: delta })
-        Logger.debugToOutputChannel('AI Response Chunk', delta, settings)
+        Logger.debugToOutputChannel('AI Response Chunk', delta)
       }
       this._panel.webview.postMessage({ command: 'aiEnd' })
     } catch (error: any) {
-      vscode.window.showErrorMessage(`Error generating commit message: ${error.message}`)
+      const errorMessage = `Error generating commit message: ${error.message}`
+      vscode.window.showErrorMessage(errorMessage)
       this._panel.webview.postMessage({ command: 'aiError' })
+      Logger.error(errorMessage)
+      Logger.debugToOutputChannel('AI Generation Error', error)
     }
   }
 
@@ -196,7 +196,7 @@ class CommitEditorPanel {
         return
       }
 
-      Logger.debug('Staged Changes', diff)
+      Logger.debugToOutputChannel('Staged Changes', diff)
 
       const settings = this._context.globalState.get<AllSettings>('aiSettings')
       const config = vscode.workspace.getConfiguration('commitAssistant')
@@ -210,21 +210,21 @@ class CommitEditorPanel {
       const providerSettings = settings.providers[settings.activeProvider]
 
       this._panel.webview.postMessage({ command: 'aiStart' })
-      const result = await generateStructuredCommitMessage(
-        settings.activeProvider,
-        providerSettings.apiKey,
-        providerSettings.model,
-        settings.language,
-        settings.maxLength,
-        diff,
-        commitTypes,
-        providerSettings.baseUrl
-      )
+
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out after 30 seconds.')), 30000))
+
+      const result = await Promise.race([
+        generateStructuredCommitMessage(settings.activeProvider, providerSettings.apiKey, providerSettings.model, settings.language, settings.maxLength, diff, commitTypes, providerSettings.baseUrl),
+        timeoutPromise,
+      ])
       this._panel.webview.postMessage({ command: 'loadAiFormData', data: result })
-      Logger.debugToOutputChannel('AI Response Form Data', result, settings)
+      Logger.debugToOutputChannel('AI Response Form Data', result)
     } catch (error: any) {
-      vscode.window.showErrorMessage(`Error generating commit message: ${error.message}`)
+      const errorMessage = `Error generating commit message: ${error.message}`
+      vscode.window.showErrorMessage(errorMessage)
       this._panel.webview.postMessage({ command: 'aiError' })
+      Logger.error(errorMessage)
+      Logger.debugToOutputChannel('AI Generation Error', error)
     } finally {
       this._panel.webview.postMessage({ command: 'aiEnd' })
     }

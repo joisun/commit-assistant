@@ -184,7 +184,7 @@ export async function generateCommitMessage(provider: string, apiKey: string, mo
     prompt: generateTextPrompt(language, maxLength, diff, commitTypes),
   })
 
-  Logger.debug('Stream Text Request', {
+  Logger.debugToOutputChannel('Stream Text Request', {
     provider,
     model,
     apiKey,
@@ -235,14 +235,14 @@ export async function generateStructuredCommitMessage(provider: string, apiKey: 
     prompt: generateFormPrompt(language, maxLength, commitTypes, diff),
   })
 
-  Logger.debug('Generate Object Request', {
+  Logger.debugToOutputChannel('Generate Object Request', {
     provider,
     model,
     apiKey,
     prompt: generateFormPrompt(language, maxLength, commitTypes, diff),
   })
 
-  Logger.debug('Generate Object Response', object)
+  Logger.debugToOutputChannel('Generate Object Response', object)
 
   return object
 }
