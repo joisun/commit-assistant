@@ -6,7 +6,7 @@
   "publisher": "sunzhongyi",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.70.0"
+    "vscode": "^1.89.0"
   },
   "categories": [
     "Other"
@@ -22,11 +22,8 @@
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/commit-assistant"
+    "url": "https://github.com/joisun/commit-assistant"
   },
-  "activationEvents": [
-    "onCommand:commitAssistant.openEditor"
-  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
