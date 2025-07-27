@@ -32,20 +32,6 @@ interface GeminiModelListResponse {
   models: GeminiModel[]
 }
 
-interface ErrorResponse {
-  error: {
-    message: string
-    type: string
-    param: string | null
-    code: string
-  }
-}
-
-interface XAIErrorResponse {
-  code: string
-  error: string
-}
-
 const providerBaseUrls: Record<string, string> = {
   openai: 'https://api.openai.com/v1',
   openrouter: 'https://openrouter.ai/api/v1',
@@ -58,11 +44,10 @@ export async function getAvailableModels(provider: string, apiKey: string, custo
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`)
       if (!response.ok) {
         const errorData: unknown = await response.json()
-        // Handle different error structures
         let errorMessage = 'An unknown error occurred'
         if (typeof errorData === 'object' && errorData !== null && 'error' in errorData) {
-          const errorPayload = errorData.error
-          if (typeof errorPayload === 'object' && errorPayload !== null && 'message' in errorPayload && typeof (errorPayload as any).message === 'string') {
+          const errorPayload = (errorData as any).error
+          if (typeof errorPayload === 'object' && errorPayload !== null && 'message' in errorPayload) {
             errorMessage = (errorPayload as { message: string }).message
           } else if (typeof errorPayload === 'string') {
             errorMessage = errorPayload
@@ -85,50 +70,20 @@ export async function getAvailableModels(provider: string, apiKey: string, custo
 
   try {
     const baseUrl = customBaseUrl || providerBaseUrls[provider]
-
     if (!baseUrl) {
-      if (provider === 'custom') {
-        throw new Error('A custom base URL is required for the "Custom" provider.')
-      }
-      throw new Error(`Unsupported provider without a default base URL: ${provider}`)
+      throw new Error(`Unsupported provider: ${provider}`)
     }
-
-    let client
-    // We can expand this as we support more providers
-    switch (provider) {
-      case 'openai':
-      case 'xai':
-      case 'openrouter':
-      case 'custom':
-        client = createOpenAI({
-          apiKey: apiKey,
-          baseURL: baseUrl,
-        })
-        break
-      case 'gemini':
-        client = createGoogleGenerativeAI({
-          apiKey: apiKey,
-        })
-        break
-      default:
-        throw new Error(`Unsupported provider: ${provider}`)
-    }
-
-    // This is a workaround to get models. The Vercel AI SDK does not have a direct API for listing models.
-    // We have to try a dummy request and see what models are available.
-    // This is not ideal, but it's a common approach.
     const response = await fetch(`${baseUrl}/models`, {
       headers: {
         Authorization: `Bearer ${apiKey}`,
       },
     })
-
     if (!response.ok) {
       const errorData: unknown = await response.json()
       let errorMessage = 'An unknown error occurred'
       if (typeof errorData === 'object' && errorData !== null && 'error' in errorData) {
-        const errorPayload = errorData.error
-        if (typeof errorPayload === 'object' && errorPayload !== null && 'message' in errorPayload && typeof (errorPayload as any).message === 'string') {
+        const errorPayload = (errorData as any).error
+        if (typeof errorPayload === 'object' && errorPayload !== null && 'message' in errorPayload) {
           errorMessage = (errorPayload as { message: string }).message
         } else if (typeof errorPayload === 'string') {
           errorMessage = errorPayload
@@ -136,18 +91,15 @@ export async function getAvailableModels(provider: string, apiKey: string, custo
       }
       throw new Error(`Failed to fetch models: ${errorMessage}`)
     }
-
     const modelsData = (await response.json()) as ModelListResponse
-
     return modelsData.data
       .map((model: OpenAIModel) => ({
         id: model.id,
-        name: model.id, // Or use a more descriptive name if available
+        name: model.id,
       }))
       .sort((a: Model, b: Model) => a.name.localeCompare(b.name))
   } catch (error: any) {
     console.error('Error fetching models:', error)
-    // Send a more user-friendly error message
     throw new Error(error.message || 'Failed to connect to the AI provider.')
   }
 }
@@ -159,87 +111,89 @@ export async function generateCommitMessage(provider: string, apiKey: string, mo
   }
 
   let client
-
   switch (provider) {
     case 'openai':
     case 'xai':
     case 'openrouter':
     case 'custom':
-      client = createOpenAI({
-        apiKey: apiKey,
-        baseURL: baseUrl,
-      })
+      client = createOpenAI({ apiKey, baseURL: baseUrl })
       break
     case 'gemini':
-      client = createGoogleGenerativeAI({
-        apiKey: apiKey,
-      })
+      client = createGoogleGenerativeAI({ apiKey })
       break
     default:
       throw new Error(`Unsupported provider: ${provider}`)
   }
 
-  const result = await streamText({
-    model: client(model),
-    prompt: generateTextPrompt(language, maxLength, diff, commitTypes),
-  })
+  const prompt = generateTextPrompt(language, maxLength, diff, commitTypes)
 
   Logger.debugToOutputChannel('Stream Text Request', {
     provider,
     model,
     apiKey,
-    prompt: generateTextPrompt(language, maxLength, diff, commitTypes),
+    prompt,
   })
 
-  // Since this is a stream, we can't log the full response at once.
-  // The stream is consumed in extension.ts.
+  const result = await streamText({
+    model: client(model),
+    prompt,
+  })
+
   return result
 }
 
-export async function generateStructuredCommitMessage(provider: string, apiKey: string, model: string, language: string, maxLength: number, diff: string, commitTypes: any, customBaseUrl?: string) {
+export async function generateStructuredCommitMessage(
+  provider: string,
+  apiKey: string,
+  model: string,
+  language: string,
+  maxLength: number,
+  diff: string,
+  commitTypes: any,
+  aiFieldConfig: { scope: boolean; body: boolean; footer: boolean },
+  customBaseUrl?: string
+) {
   const baseUrl = customBaseUrl || providerBaseUrls[provider]
   if (!baseUrl && provider !== 'gemini') {
     throw new Error('Base URL not found for provider.')
   }
 
   let client
-
   switch (provider) {
     case 'openai':
     case 'xai':
     case 'openrouter':
     case 'custom':
-      client = createOpenAI({
-        apiKey: apiKey,
-        baseURL: baseUrl,
-      })
+      client = createOpenAI({ apiKey, baseURL: baseUrl })
       break
     case 'gemini':
-      client = createGoogleGenerativeAI({
-        apiKey: apiKey,
-      })
+      client = createGoogleGenerativeAI({ apiKey })
       break
     default:
       throw new Error(`Unsupported provider: ${provider}`)
   }
 
-  const { object } = await generateObject({
-    model: client(model),
-    schema: z.object({
-      type: z.string(),
-      scope: z.string().optional().nullable(),
-      description: z.string(),
-      body: z.string().optional().nullable(),
-      footer: z.string().optional().nullable(),
-    }),
-    prompt: generateFormPrompt(language, maxLength, commitTypes, diff),
+  const schema = z.object({
+    type: z.string(),
+    description: z.string(),
+    scope: aiFieldConfig.scope ? z.string().optional().nullable() : z.undefined().optional(),
+    body: aiFieldConfig.body ? z.string().optional().nullable() : z.undefined().optional(),
+    footer: aiFieldConfig.footer ? z.string().optional().nullable() : z.undefined().optional(),
   })
+
+  const prompt = generateFormPrompt(language, maxLength, commitTypes, diff, aiFieldConfig)
 
   Logger.debugToOutputChannel('Generate Object Request', {
     provider,
     model,
     apiKey,
-    prompt: generateFormPrompt(language, maxLength, commitTypes, diff),
+    prompt,
+  })
+
+  const { object } = await generateObject({
+    model: client(model),
+    schema,
+    prompt,
   })
 
   Logger.debugToOutputChannel('Generate Object Response', object)

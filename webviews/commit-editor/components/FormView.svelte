@@ -19,6 +19,12 @@
   export let loading = false
   export let vscode: any
 
+  let aiFieldConfig = {
+    scope: false,
+    body: false,
+    footer: false,
+  }
+
   const dispatch = createEventDispatcher()
 
   function update(field: keyof Omit<typeof commitData, 'selectedFlags'>, value: string) {
@@ -35,17 +41,26 @@
 <div class="space-y-4">
   <div class="flex justify-between items-center">
     <h3 class="text-base font-medium">Form</h3>
-    <AITrigger on:click={() => vscode.postMessage({ command: 'generateAiCommitForForm' })} {disabled} {loading} />
+    <AITrigger
+      on:click={() =>
+        vscode.postMessage({
+          command: 'generateAiCommitForForm',
+          config: aiFieldConfig,
+        })}
+      {disabled}
+      {loading}
+    />
   </div>
   <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} />
   <div>
     <label for="type" class="block text-sm font-medium mb-1">Type</label>
     <CustomSelect items={commitTypes} selectedValue={commitData.type} on:change={(e) => update('type', e.detail)} placeholder="Select type..." />
   </div>
-  <div>
-    <label for="scope" class="block text-sm font-medium mb-1">Scope <span class="text-gray-400">(optional)</span></label>
-    <input type="text" id="scope" class="w-full" value={commitData.scope} on:input={(e) => update('scope', e.currentTarget.value)} placeholder="e.g., auth, ui, api" />
+  <div class="flex items-center justify-between">
+    <label for="scope" class="block text-sm font-medium">Scope <span class="text-gray-400">(optional)</span></label>
+    <input type="checkbox" bind:checked={aiFieldConfig.scope} title="Generate AI content for this field" />
   </div>
+  <input type="text" id="scope" class="w-full" value={commitData.scope} on:input={(e) => update('scope', e.currentTarget.value)} placeholder="e.g., auth, ui, api" />
   <div>
     <label for="description" class="block text-sm font-medium mb-1">Description</label>
     <input
@@ -58,14 +73,16 @@
       maxlength="72"
     />
   </div>
-  <div>
-    <label for="body" class="block text-sm font-medium mb-1">Body <span class="text-gray-400">(optional)</span></label>
-    <textarea id="body" rows="4" class="w-full" value={commitData.body} on:input={(e) => update('body', e.currentTarget.value)} placeholder="Detailed description of changes"></textarea>
+  <div class="flex items-center justify-between">
+    <label for="body" class="block text-sm font-medium">Body <span class="text-gray-400">(optional)</span></label>
+    <input type="checkbox" bind:checked={aiFieldConfig.body} title="Generate AI content for this field" />
   </div>
-  <div>
-    <label for="footer" class="block text-sm font-medium mb-1">Footer <span class="text-gray-400">(optional)</span></label>
-    <textarea id="footer" rows="2" class="w-full" value={commitData.footer} on:input={(e) => update('footer', e.currentTarget.value)} placeholder="e.g., Closes #123, Breaking change info"></textarea>
+  <textarea id="body" rows="4" class="w-full" value={commitData.body} on:input={(e) => update('body', e.currentTarget.value)} placeholder="Detailed description of changes"></textarea>
+  <div class="flex items-center justify-between">
+    <label for="footer" class="block text-sm font-medium">Footer <span class="text-gray-400">(optional)</span></label>
+    <input type="checkbox" bind:checked={aiFieldConfig.footer} title="Generate AI content for this field" />
   </div>
+  <textarea id="footer" rows="2" class="w-full" value={commitData.footer} on:input={(e) => update('footer', e.currentTarget.value)} placeholder="e.g., Closes #123, Breaking change info"></textarea>
 </div>
 
 <style>

@@ -101,7 +101,7 @@ class CommitEditorPanel {
             this._generateAiCommitForText()
             return
           case 'generateAiCommitForForm':
-            this._generateAiCommitForForm()
+            this._generateAiCommitForForm(message.config)
             return
         }
       },
@@ -179,7 +179,7 @@ class CommitEditorPanel {
     }
   }
 
-  private async _generateAiCommitForForm() {
+  private async _generateAiCommitForForm(aiFieldConfig: any) {
     Logger.info('Generating commit message for form view...')
     try {
       if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
@@ -214,7 +214,17 @@ class CommitEditorPanel {
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out after 30 seconds.')), 30000))
 
       const result = await Promise.race([
-        generateStructuredCommitMessage(settings.activeProvider, providerSettings.apiKey, providerSettings.model, settings.language, settings.maxLength, diff, commitTypes, providerSettings.baseUrl),
+        generateStructuredCommitMessage(
+          settings.activeProvider,
+          providerSettings.apiKey,
+          providerSettings.model,
+          settings.language,
+          settings.maxLength,
+          diff,
+          commitTypes,
+          aiFieldConfig,
+          providerSettings.baseUrl
+        ),
         timeoutPromise,
       ])
       this._panel.webview.postMessage({ command: 'loadAiFormData', data: result })
