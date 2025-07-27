@@ -38,15 +38,17 @@ Rules:
 `.trim()
 }
 
-export function generateTextPrompt(language: string, maxLength: number, diff: string): string {
+export function generateTextPrompt(language: string, maxLength: number, diff: string, commitTypes: any): string {
+  const types = commitTypes || conventionalCommitTypes
   return `
 As an expert programmer, please write a concise and clear commit message in ${language} based on the following code changes (diff).
 
 ${diff}
 
 Rules:
-1.  The message should follow the conventional commit format.
-2.  The entire commit message (header, body, footer) should be no more than ${maxLength} characters in total.
-3.  Do not include any explanations or markdown formatting. Your entire response will be passed directly into git commit.
+1.  The message must follow the conventional commit format.
+2.  Choose the most appropriate commit type from this list: ${Object.keys(types).join(', ')}.
+3.  The entire commit message (header, body, footer) should be no more than ${maxLength} characters in total.
+4.  Do not include any explanations or markdown formatting. Your entire response will be passed directly into git commit.
 `.trim()
 }

@@ -152,7 +152,7 @@ export async function getAvailableModels(provider: string, apiKey: string, custo
   }
 }
 
-export async function generateCommitMessage(provider: string, apiKey: string, model: string, language: string, maxLength: number, diff: string, customBaseUrl?: string) {
+export async function generateCommitMessage(provider: string, apiKey: string, model: string, language: string, maxLength: number, diff: string, commitTypes: any, customBaseUrl?: string) {
   const baseUrl = customBaseUrl || providerBaseUrls[provider]
   if (!baseUrl && provider !== 'gemini') {
     throw new Error('Base URL not found for provider.')
@@ -181,14 +181,14 @@ export async function generateCommitMessage(provider: string, apiKey: string, mo
 
   const result = await streamText({
     model: client(model),
-    prompt: generateTextPrompt(language, maxLength, diff),
+    prompt: generateTextPrompt(language, maxLength, diff, commitTypes),
   })
 
   Logger.debug('Stream Text Request', {
     provider,
     model,
     apiKey,
-    prompt: generateTextPrompt(language, maxLength, diff),
+    prompt: generateTextPrompt(language, maxLength, diff, commitTypes),
   })
 
   // Since this is a stream, we can't log the full response at once.

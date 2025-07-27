@@ -146,6 +146,8 @@ class CommitEditorPanel {
       Logger.debug('Staged Changes', diff)
 
       const settings = this._context.globalState.get<AllSettings>('aiSettings')
+      const config = vscode.workspace.getConfiguration('commitAssistant')
+      const commitTypes = config.get('commitTypes')
 
       if (!settings || !settings.activeProvider || !settings.providers[settings.activeProvider]?.apiKey) {
         vscode.window.showErrorMessage('AI settings are not configured. Please configure them in the settings.')
@@ -154,7 +156,16 @@ class CommitEditorPanel {
 
       const providerSettings = settings.providers[settings.activeProvider]
 
-      const result = await generateCommitMessage(settings.activeProvider, providerSettings.apiKey, providerSettings.model, settings.language, settings.maxLength, diff, providerSettings.baseUrl)
+      const result = await generateCommitMessage(
+        settings.activeProvider,
+        providerSettings.apiKey,
+        providerSettings.model,
+        settings.language,
+        settings.maxLength,
+        diff,
+        commitTypes,
+        providerSettings.baseUrl
+      )
 
       this._panel.webview.postMessage({ command: 'aiStart' })
       for await (const delta of result.textStream) {
