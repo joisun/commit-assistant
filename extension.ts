@@ -1,6 +1,8 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
-import { getAvailableModels } from './src/ai/ai-service'
+import { getAvailableModels, generateCommitMessage, generateStructuredCommitMessage } from './src/ai/ai-service'
+import { Logger } from './src/utils/logger'
+import { simpleGit } from 'simple-git'
 
 // Define the shape of the state object
 interface WebviewState {
@@ -20,6 +22,8 @@ interface ProviderSettings {
 interface AllSettings {
   activeProvider: string
   language: 'en' | 'zh'
+  maxLength: number
+  debug: boolean
   providers: {
     [key: string]: ProviderSettings
   }
@@ -27,6 +31,7 @@ interface AllSettings {
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Commit Assistant is now active!')
+  Logger.initialize()
 
   context.subscriptions.push(
     vscode.commands.registerCommand('commitAssistant.openEditor', () => {
@@ -92,6 +97,12 @@ class CommitEditorPanel {
           case 'openSettings':
             vscode.commands.executeCommand('commitAssistant.openSettings')
             return
+          case 'generateAiCommitForText':
+            this._generateAiCommitForText()
+            return
+          case 'generateAiCommitForForm':
+            this._generateAiCommitForForm()
+            return
         }
       },
       null,
@@ -112,6 +123,99 @@ class CommitEditorPanel {
       this._panel.dispose()
     } else {
       vscode.window.showErrorMessage('No Git repository found!')
+    }
+  }
+
+  private async _generateAiCommitForText() {
+    Logger.info('Generating commit message for text view...')
+    try {
+      if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder found. Please open a Git repository.')
+        return
+      }
+      const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath
+      const git = simpleGit(workspacePath)
+
+      const diff = await git.diff(['--staged'])
+
+      if (!diff) {
+        vscode.window.showErrorMessage('No staged changes found to generate a commit message.')
+        return
+      }
+
+      Logger.debug('Staged Changes', diff)
+
+      const settings = this._context.globalState.get<AllSettings>('aiSettings')
+
+      if (!settings || !settings.activeProvider || !settings.providers[settings.activeProvider]?.apiKey) {
+        vscode.window.showErrorMessage('AI settings are not configured. Please configure them in the settings.')
+        return
+      }
+
+      const providerSettings = settings.providers[settings.activeProvider]
+
+      const result = await generateCommitMessage(settings.activeProvider, providerSettings.apiKey, providerSettings.model, settings.language, settings.maxLength, diff, providerSettings.baseUrl)
+
+      this._panel.webview.postMessage({ command: 'aiStart' })
+      for await (const delta of result.textStream) {
+        this._panel.webview.postMessage({ command: 'aiChunk', chunk: delta })
+        Logger.debugToOutputChannel('AI Response Chunk', delta, settings)
+      }
+      this._panel.webview.postMessage({ command: 'aiEnd' })
+    } catch (error: any) {
+      vscode.window.showErrorMessage(`Error generating commit message: ${error.message}`)
+      this._panel.webview.postMessage({ command: 'aiError' })
+    }
+  }
+
+  private async _generateAiCommitForForm() {
+    Logger.info('Generating commit message for form view...')
+    try {
+      if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder found. Please open a Git repository.')
+        return
+      }
+      const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath
+      const git = simpleGit(workspacePath)
+
+      const diff = await git.diff(['--staged'])
+
+      if (!diff) {
+        vscode.window.showErrorMessage('No staged changes found to generate a commit message.')
+        return
+      }
+
+      Logger.debug('Staged Changes', diff)
+
+      const settings = this._context.globalState.get<AllSettings>('aiSettings')
+      const config = vscode.workspace.getConfiguration('commitAssistant')
+      const commitTypes = config.get('commitTypes')
+
+      if (!settings || !settings.activeProvider || !settings.providers[settings.activeProvider]?.apiKey) {
+        vscode.window.showErrorMessage('AI settings are not configured. Please configure them in the settings.')
+        return
+      }
+
+      const providerSettings = settings.providers[settings.activeProvider]
+
+      this._panel.webview.postMessage({ command: 'aiStart' })
+      const result = await generateStructuredCommitMessage(
+        settings.activeProvider,
+        providerSettings.apiKey,
+        providerSettings.model,
+        settings.language,
+        settings.maxLength,
+        diff,
+        commitTypes,
+        providerSettings.baseUrl
+      )
+      this._panel.webview.postMessage({ command: 'loadAiFormData', data: result })
+      Logger.debugToOutputChannel('AI Response Form Data', result, settings)
+    } catch (error: any) {
+      vscode.window.showErrorMessage(`Error generating commit message: ${error.message}`)
+      this._panel.webview.postMessage({ command: 'aiError' })
+    } finally {
+      this._panel.webview.postMessage({ command: 'aiEnd' })
     }
   }
 

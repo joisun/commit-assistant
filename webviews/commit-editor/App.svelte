@@ -25,6 +25,7 @@
   let flags: Record<string, string[]> = {}
   let commitTypes: { value: string; label: string; description?: string }[] = []
   let preview = ''
+  let isAiLoading = false
 
   function generateCommitFromForm() {
     const { type, scope, description, body, footer, selectedFlags } = commitData
@@ -96,6 +97,23 @@
           flags = message.config.flags || {}
           commitTypes = message.config.commitTypes || []
           break
+        case 'aiStart':
+          isAiLoading = true
+          if (currentView === 'text') {
+            textContent = '' // Clear previous content for text view
+          }
+          break
+        case 'aiEnd':
+        case 'aiError':
+          isAiLoading = false
+          break
+        case 'aiChunk':
+          currentView = 'text'
+          textContent += message.chunk
+          break
+        case 'loadAiFormData':
+          commitData = { ...commitData, ...message.data }
+          break
       }
     }
 
@@ -146,9 +164,11 @@
         on:change={(e) => {
           commitData = e.detail
         }}
+        disabled={isAiLoading}
+        {vscode}
       />
     {:else if currentView === 'text'}
-      <TextView bind:value={textContent} />
+      <TextView bind:value={textContent} disabled={isAiLoading} {vscode} />
     {:else if currentView === 'flags'}
       <FlagsView bind:flags />
     {/if}

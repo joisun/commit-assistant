@@ -16,6 +16,8 @@
 
   export let flags: Record<string, string[]> = {}
   export let commitTypes: { value: string; label: string; description?: string }[] = []
+  export let disabled = false
+  export let vscode: any
 
   const dispatch = createEventDispatcher()
 
@@ -46,7 +48,7 @@
 <div class="space-y-4">
   <div class="flex justify-between items-center">
     <h3 class="text-base font-medium">Form</h3>
-    <AITrigger />
+    <AITrigger on:click={() => vscode.postMessage({ command: 'generateAiCommitForForm' })} {disabled} />
   </div>
   <div>
     <label class="block text-sm font-medium mb-1">Flags <span class="text-gray-400">(optional)</span></label>

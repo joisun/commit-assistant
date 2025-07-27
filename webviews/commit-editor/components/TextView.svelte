@@ -1,22 +1,24 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import AITrigger from './AITrigger.svelte';
+  import { onMount } from 'svelte'
+  import AITrigger from './AITrigger.svelte'
 
-  export let value: string;
-  let textarea: HTMLTextAreaElement;
+  export let value: string
+  export let disabled = false
+  export let vscode: any
+  let textarea: HTMLTextAreaElement
 
   function autoGrow() {
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
+    textarea.style.height = 'auto'
+    textarea.style.height = `${textarea.scrollHeight}px`
   }
 
   onMount(() => {
-    autoGrow();
-  });
+    autoGrow()
+  })
 
   $: if (value) {
     if (textarea) {
-      autoGrow();
+      autoGrow()
     }
   }
 </script>
@@ -24,17 +26,9 @@
 <div>
   <div class="flex justify-between items-center mb-1">
     <label for="commit-text" class="block text-sm font-medium">Commit Message</label>
-    <AITrigger />
+    <AITrigger on:click={() => vscode.postMessage({ command: 'generateAiCommitForText' })} {disabled} />
   </div>
-  <textarea
-    bind:this={textarea}
-    id="commit-text"
-    rows="4"
-    bind:value
-    on:input={autoGrow}
-    placeholder="Write your commit message here..."
-    class="w-full resize-none overflow-hidden"
-  ></textarea>
+  <textarea bind:this={textarea} id="commit-text" rows="4" bind:value on:input={autoGrow} placeholder="Write your commit message here..." class="w-full resize-none overflow-hidden"></textarea>
 </div>
 
 <style>

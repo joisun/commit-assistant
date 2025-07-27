@@ -1,6 +1,9 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { streamText, tool } from 'ai'
+import { streamText, generateObject } from 'ai'
+import { z } from 'zod'
+import { generateFormPrompt, generateTextPrompt } from './prompts'
+import { Logger } from '../utils/logger'
 
 interface Model {
   id: string
@@ -147,4 +150,99 @@ export async function getAvailableModels(provider: string, apiKey: string, custo
     // Send a more user-friendly error message
     throw new Error(error.message || 'Failed to connect to the AI provider.')
   }
+}
+
+export async function generateCommitMessage(provider: string, apiKey: string, model: string, language: string, maxLength: number, diff: string, customBaseUrl?: string) {
+  const baseUrl = customBaseUrl || providerBaseUrls[provider]
+  if (!baseUrl && provider !== 'gemini') {
+    throw new Error('Base URL not found for provider.')
+  }
+
+  let client
+
+  switch (provider) {
+    case 'openai':
+    case 'xai':
+    case 'openrouter':
+    case 'custom':
+      client = createOpenAI({
+        apiKey: apiKey,
+        baseURL: baseUrl,
+      })
+      break
+    case 'gemini':
+      client = createGoogleGenerativeAI({
+        apiKey: apiKey,
+      })
+      break
+    default:
+      throw new Error(`Unsupported provider: ${provider}`)
+  }
+
+  const result = await streamText({
+    model: client(model),
+    prompt: generateTextPrompt(language, maxLength, diff),
+  })
+
+  Logger.debug('Stream Text Request', {
+    provider,
+    model,
+    apiKey,
+    prompt: generateTextPrompt(language, maxLength, diff),
+  })
+
+  // Since this is a stream, we can't log the full response at once.
+  // The stream is consumed in extension.ts.
+  return result
+}
+
+export async function generateStructuredCommitMessage(provider: string, apiKey: string, model: string, language: string, maxLength: number, diff: string, commitTypes: any, customBaseUrl?: string) {
+  const baseUrl = customBaseUrl || providerBaseUrls[provider]
+  if (!baseUrl && provider !== 'gemini') {
+    throw new Error('Base URL not found for provider.')
+  }
+
+  let client
+
+  switch (provider) {
+    case 'openai':
+    case 'xai':
+    case 'openrouter':
+    case 'custom':
+      client = createOpenAI({
+        apiKey: apiKey,
+        baseURL: baseUrl,
+      })
+      break
+    case 'gemini':
+      client = createGoogleGenerativeAI({
+        apiKey: apiKey,
+      })
+      break
+    default:
+      throw new Error(`Unsupported provider: ${provider}`)
+  }
+
+  const { object } = await generateObject({
+    model: client(model),
+    schema: z.object({
+      type: z.string(),
+      scope: z.string().optional().nullable(),
+      description: z.string(),
+      body: z.string().optional().nullable(),
+      footer: z.string().optional().nullable(),
+    }),
+    prompt: generateFormPrompt(language, maxLength, commitTypes, diff),
+  })
+
+  Logger.debug('Generate Object Request', {
+    provider,
+    model,
+    apiKey,
+    prompt: generateFormPrompt(language, maxLength, commitTypes, diff),
+  })
+
+  Logger.debug('Generate Object Response', object)
+
+  return object
 }

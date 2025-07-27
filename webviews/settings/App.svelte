@@ -21,6 +21,8 @@
   interface AllSettings {
     activeProvider: string
     language: 'en' | 'zh'
+    maxLength: number
+    debug: boolean
     providers: {
       [key: string]: ProviderSettings
     }
@@ -30,6 +32,8 @@
   let settings: AllSettings = {
     activeProvider: 'openai',
     language: 'en',
+    maxLength: 50,
+    debug: false,
     providers: {},
   }
 
@@ -113,6 +117,8 @@
           settings = {
             activeProvider: loadedSettings.activeProvider || 'openai',
             language: loadedSettings.language || 'en',
+            maxLength: loadedSettings.maxLength || 50,
+            debug: loadedSettings.debug || false,
             providers: loadedSettings.providers || {},
           }
           // Ensure all provider keys exist after loading
@@ -218,6 +224,25 @@
       <option value="en">English</option>
       <option value="zh">中文 (Chinese)</option>
     </select>
+  </div>
+
+  <div class="border-t" style="border-color: var(--vscode-input-border);"></div>
+
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold">Max Length</h3>
+    <p class="text-sm" style="color: var(--vscode-descriptionForeground);">Set the maximum length for the generated text.</p>
+    <input id="maxLength" type="number" class="w-full" bind:value={settings.maxLength} on:input={debouncedSave} placeholder="e.g., 50" />
+  </div>
+
+  <div class="border-t" style="border-color: var(--vscode-input-border);"></div>
+
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold">Debugging</h3>
+    <div class="flex items-center space-x-2">
+      <input id="debug" type="checkbox" bind:checked={settings.debug} on:change={debouncedSave} />
+      <label for="debug" class="text-sm font-medium">Enable debug logging</label>
+    </div>
+    <p class="text-sm" style="color: var(--vscode-descriptionForeground);">Show detailed logs in the "Commit Assistant" output channel.</p>
   </div>
 </div>
 
