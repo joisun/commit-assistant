@@ -1,0 +1,54 @@
+# Source files
+webviews/**
+src/**
+*.ts
+!out/**/*.js
+
+# Build and development files
+.vscode-test/**
+.vscode/**
+node_modules/**
+rollup.config.mjs
+tailwind.config.mjs
+postcss.config.js
+tsconfig.json
+webviews/tsconfig.json
+
+# Development dependencies and configs
+.eslintrc.*
+.prettierrc.*
+.gitignore
+.github/**
+
+# Documentation and examples
+README.md
+CHANGELOG.md
+docs/**
+examples/**
+
+# Test files
+test/**
+tests/**
+**/*.test.js
+**/*.test.ts
+**/*.spec.js
+**/*.spec.ts
+
+# Source maps (optional - remove if you want to include them)
+**/*.map
+
+# Logs and temporary files
+*.log
+.DS_Store
+Thumbs.db
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# IDE files
+.idea/**
+*.swp
+*.swo
+*~

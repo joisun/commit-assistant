@@ -1,78 +1,201 @@
-# 🤖 Commit Assistant (Svelte Edition)
+# 🤖 Commit Assistant
 
-一个使用现代化技术栈重构的 VS Code 扩展，旨在帮助你更轻松、更规范地编写 commit message。
+A modern VS Code extension that helps you write better commit messages with ease and consistency.
 
-这个版本使用 **Svelte + TypeScript + Tailwind CSS** 构建，提供了极致的性能、优秀的可维护性和现代化的开发体验。
+Built with **Svelte + TypeScript + Tailwind CSS** for optimal performance, maintainability, and developer experience.
 
-## ✨ 特性
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/sunzhongyi.commit-assistant)](https://marketplace.visualstudio.com/items?itemName=sunzhongyi.commit-assistant)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/sunzhongyi.commit-assistant)](https://marketplace.visualstudio.com/items?itemName=sunzhongyi.commit-assistant)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/sunzhongyi.commit-assistant)](https://marketplace.visualstudio.com/items?itemName=sunzhongyi.commit-assistant)
 
-- 🚀 **现代化技术栈**: 使用 Svelte、TypeScript 和 Tailwind CSS 构建，性能卓越，代码简洁。
-- 📝 **结构化表单**: 引导用户按照 Conventional Commits 规范填写 commit message。
-- 📄 **自由文本编辑**: 同时提供纯文本编辑模式，满足不同需求。
-- 🔄 **实时预览**: 边写边看最终的 commit message 效果。
-- 💾 **状态持久化**: 自动保存编辑内容，关闭后不丢失。
-- 🎨 **VS Code 主题适配**: UI 风格与编辑器无缝融合。
-- ⌨️ **快捷键支持**:
-  - `Ctrl+Enter` / `Cmd+Enter` - 保存
-  - `Escape` - 取消
+## ✨ Features
 
-## 🏗️ 项目架构
+### 📝 **Structured Form Mode**
+- **Conventional Commits** compliant form with type, scope, description, body, and footer fields
+- **Smart type selector** with predefined commit types (feat, fix, docs, etc.)
+- **AI-powered generation** for scope and body fields
+- **Custom flags system** for additional metadata
+
+### 📄 **Free Text Mode**
+- **Pure text editor** for those who prefer writing commit messages directly
+- **Auto-growing textarea** that adapts to content length
+- **Flag integration** that works seamlessly with text mode
+
+### 🤖 **AI Integration**
+- **OpenAI & Google AI** support for intelligent commit message generation
+- **Context-aware suggestions** based on your code changes
+- **Configurable AI models** (GPT-4, GPT-3.5, Gemini Pro, etc.)
+- **Field-specific generation** for targeted assistance
+
+### 🎨 **Modern UI/UX**
+- **VS Code theme integration** - perfectly matches your editor's appearance
+- **Responsive design** that works on different screen sizes
+- **Real-time preview** of your final commit message
+- **Intuitive tabbed interface** for easy mode switching
+
+### 💾 **Smart State Management**
+- **Auto-save functionality** - never lose your work
+- **Session persistence** across VS Code restarts
+- **Workspace-specific settings** for team consistency
+
+### ⌨️ **Keyboard Shortcuts**
+- `Ctrl+Enter` / `Cmd+Enter` - Save commit
+- `Escape` - Cancel and close
+- Full keyboard navigation support
+
+## 🚀 Quick Start
+
+### Installation
+
+1. **From VS Code Marketplace**: Search for "Commit Assistant" in the Extensions view (`Ctrl+Shift+X`)
+2. **From Command Line**: `code --install-extension sunzhongyi.commit-assistant`
+
+### Usage
+
+1. **Open the Assistant**: Click the "Assistant" button in the Source Control panel
+2. **Choose your mode**: 
+   - **Form Mode**: Fill out structured fields for conventional commits
+   - **Text Mode**: Write commit messages in free text format
+   - **Flags Mode**: Configure custom flags for your workflow
+3. **Use AI assistance**: Click the AI trigger buttons for intelligent suggestions
+4. **Save your commit**: Press `Ctrl+Enter` or click the Save button
+
+## ⚙️ Configuration
+
+### AI Settings
+
+You can configure AI providers in VS Code settings in GUI way.
+
+### Commit Types
+
+Customize available commit types:
+
+```json
+{
+  "commitAssistant.commitTypes": [
+    {
+      "value": "feat",
+      "label": "feat",
+      "description": "A new feature"
+    },
+    {
+      "value": "fix", 
+      "label": "fix",
+      "description": "A bug fix"
+    }
+    // ... more types
+  ]
+}
+```
+
+## 📸 Screenshots
+
+### Form Mode
+![Form Mode](https://via.placeholder.com/800x600/1e1e1e/ffffff?text=Form+Mode+Screenshot)
+
+*Structured form with conventional commit fields and AI assistance*
+
+### Text Mode  
+![Text Mode](https://via.placeholder.com/800x600/1e1e1e/ffffff?text=Text+Mode+Screenshot)
+
+*Free text editor with auto-growing textarea and flag support*
+
+### Settings
+![Settings](https://via.placeholder.com/800x600/1e1e1e/ffffff?text=Settings+Screenshot)
+
+*Comprehensive settings for AI configuration and commit types*
+
+## 🏗️ Architecture
 
 ```
 commit-assistant/
-├── webview/                # 📦 前端 (Svelte + TS)
-│   ├── App.svelte          # 主组件
-│   ├── main.ts             # 入口文件
-│   ├── app.css             # Tailwind CSS 全局样式
-│   └── tsconfig.json       # 前端TS配置
-├── extension.ts            # 🚀 扩展后端 (VS Code API)
-├── rollup.config.mjs       # 🛠️ 前端构建配置
-├── tailwind.config.js      # 🎨 样式配置
-├── package.json            # ⚙️ 项目配置与依赖
-└── tsconfig.json           # 🔧 后端TS配置
+├── webviews/
+│   ├── commit-editor/          # 📝 Main commit editor
+│   │   ├── components/         # Svelte components
+│   │   ├── App.svelte         # Main app component
+│   │   └── main.ts            # Entry point
+│   └── settings/              # ⚙️ Settings panel
+├── extension.ts               # 🚀 VS Code extension logic
+├── rollup.config.mjs         # 🛠️ Build configuration
+└── package.json              # 📦 Extension manifest
 ```
 
-### 架构优势
+### Technical Highlights
 
-✅ **高性能**: Svelte 作为编译器，产出极小、无运行时的原生 JS，加载和运行速度飞快。
-✅ **强类型**: 全程使用 TypeScript，代码更健壮，错误更少。
-✅ **易维护**: 组件化的代码结构和声明式的 Svelte 语法，让逻辑更清晰。
-✅ **开发高效**: Tailwind CSS 提供了强大的样式工具，UI 开发更迅速。
-✅ **易于扩展**: 清晰的架构为未来集成 AI 功能（如自动生成 commit）等高级特性打下坚实基础。
+- **🚀 Svelte**: Compile-time optimized, minimal runtime overhead
+- **📘 TypeScript**: Full type safety across the entire codebase  
+- **🎨 Tailwind CSS**: Utility-first styling with VS Code theme integration
+- **🤖 AI SDK**: Unified interface for multiple AI providers
+- **⚡ Rollup**: Optimized bundling for webview components
 
-## 🚀 开发指南
+## 🛠️ Development
 
-### 1. 安装依赖
+### Prerequisites
+
+- Node.js 18+ 
+- VS Code 1.70+
+- Git
+
+### Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/joisun/commit-assistant.git
+cd commit-assistant
+
+# Install dependencies
 npm install
+
+# Build the extension
+npm run build
 ```
 
-### 2. 编译与构建
+### Development Workflow
 
 ```bash
-# 运行一次完整的构建 (编译后端 + 打包前端)
-npm run build
-
-# 或者，在开发时监听后端文件变化
+# Start TypeScript compiler in watch mode
 npm run watch
 
-# (需要新开一个终端) 监听并自动打包前端文件
-npm run build:webview -- --watch
+# In another terminal, start webview build in watch mode  
+npm run build:watch
+
+# Press F5 in VS Code to launch Extension Development Host
 ```
 
-### 3. 启动与调试
+### Testing
 
-1.  完成构建后，在 VS Code 中按 `F5` 启动一个“扩展开发宿主”窗口。
-2.  在新窗口中，打开任何一个包含 Git 仓库的项目。
-3.  点击“源代码管理”面板上的 "Assistant" 按钮，即可看到新的 UI 界面。
+```bash
+# Run tests (if available)
+npm test
 
-## 🔮 未来计划
+# Package extension for testing
+npm run package
+```
 
-- 🤖 **AI 自动生成**: 基于代码变更自动生成高质量的 commit message。
-- 🎯 **智能建议**: 根据项目历史和规范提供动态建议。
-- 🔧 **自定义模板**: 允许用户或团队自定义 commit 模板。
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Guidelines
+
+1. **Code Style**: We use TypeScript strict mode and Prettier for formatting
+2. **Commits**: Follow conventional commit format that this extension helps create!
+3. **Testing**: Add tests for new features and bug fixes
+4. **Documentation**: Update README and inline docs for any changes
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Conventional Commits** specification for commit message standards
+- **Svelte** team for the amazing compile-time framework
+- **VS Code** team for the excellent extension API
+- **OpenAI** and **Google** for AI capabilities
 
 ---
 
-**开始你的现代化 commit message 助手之旅吧！** 🚀
+**Start writing better commits today!** 🚀
+
+[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=sunzhongyi.commit-assistant)
