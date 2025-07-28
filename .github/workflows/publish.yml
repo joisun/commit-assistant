@@ -19,6 +19,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
 
     steps:
       - name: Checkout code
@@ -64,11 +67,23 @@ jobs:
 
       - name: Create Git Tag (for releases only)
         if: github.event.inputs.release_type == 'release'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git tag "v${{ github.event.inputs.version }}"
-          git push origin "v${{ github.event.inputs.version }}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = `v${{ github.event.inputs.version }}`;
+            const ref = `refs/tags/${tag}`;
+
+            try {
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: ref,
+                sha: context.sha
+              });
+              console.log(`Created tag: ${tag}`);
+            } catch (error) {
+              console.log(`Tag ${tag} might already exist: ${error.message}`);
+            }
 
       - name: Create GitHub Release (for releases only)
         if: github.event.inputs.release_type == 'release'
@@ -77,6 +92,7 @@ jobs:
           tag_name: "v${{ github.event.inputs.version }}"
           files: "*.vsix"
           generate_release_notes: true
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
