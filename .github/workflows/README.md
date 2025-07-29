@@ -124,3 +124,7 @@ Both workflows upload artifacts that you can download:
 - Check the Actions tab for detailed logs
 - Ensure all dependencies are properly listed in `package.json`
 - Test the build locally with `npm run build` before pushing
+
+
+
+> publish to cursor: https://github.com/eclipse/openvsx/wiki/Publishing-Extensions
