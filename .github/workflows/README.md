@@ -45,7 +45,18 @@ You need to set up a `VSCE_TOKEN` secret in your GitHub repository:
 5. In your GitHub repository, go to Settings → Secrets and variables → Actions
 6. Add a new repository secret named `VSCE_TOKEN` with your PAT as the value
 
-### 2. Update package.json
+### 2. OpenVSX Registry Token (for Cursor Marketplace)
+
+To publish to Cursor Marketplace, you need an OpenVSX token:
+
+1. Go to [OpenVSX Registry](https://open-vsx.org/)
+2. Sign in with your GitHub account
+3. Go to your user settings
+4. Generate a new Access Token
+5. In your GitHub repository, go to Settings → Secrets and variables → Actions
+6. Add a new repository secret named `OVSX_TOKEN` with your OpenVSX token as the value
+
+### 3. Update package.json
 
 Make sure your `package.json` has the correct publisher name:
 
@@ -55,7 +66,7 @@ Make sure your `package.json` has the correct publisher name:
 }
 ```
 
-### 3. Repository URL
+### 4. Repository URL
 
 Update the repository URL in `package.json`:
 
@@ -70,30 +81,23 @@ Update the repository URL in `package.json`:
 
 ## Publishing Process
 
-### Regular Release
-
-1. Update the version in `package.json`
-2. Commit your changes
-3. Create and push a tag:
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-4. The workflow will automatically publish to the marketplace
-
-### Pre-release
+### Manual Release (Recommended)
 
 1. Go to Actions tab in your GitHub repository
 2. Select "Publish to VS Code Marketplace"
 3. Click "Run workflow"
-4. Leave the version input empty to publish as pre-release
+4. Fill in the required fields:
+   - **Version**: Enter version number (e.g., `1.0.0`)
+   - **Release type**: Choose `release` or `pre-release`
+   - **Publish to OpenVSX**: Check if you want to publish to Cursor Marketplace
+5. Click "Run workflow"
 
-### Manual Release
-
-1. Go to Actions tab in your GitHub repository
-2. Select "Publish to VS Code Marketplace"
-3. Click "Run workflow"
-4. Enter a version (e.g., `v1.0.0`) if needed
+The workflow will:
+- Update the version in `package.json`
+- Build and package the extension
+- Publish to VS Code Marketplace
+- Optionally publish to OpenVSX Registry (Cursor Marketplace)
+- Create GitHub release (for regular releases)
 
 ## Artifacts
 

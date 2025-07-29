@@ -2,7 +2,7 @@
   "name": "commit-assistant",
   "displayName": "Commit Assistant",
   "description": "Smart commit message editor that helps you write better commit messages",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "publisher": "sunzhongyi",
   "license": "MIT",
   "engines": {

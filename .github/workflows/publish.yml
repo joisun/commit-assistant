@@ -15,6 +15,11 @@ on:
           - 'release'
           - 'pre-release'
         default: 'release'
+      publish_to_openvsx:
+        description: 'Also publish to OpenVSX Registry (Cursor Marketplace)'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   publish:
@@ -44,8 +49,10 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Install VSCE
-        run: npm install -g @vscode/vsce
+      - name: Install VSCE and OVSX
+        run: |
+          npm install -g @vscode/vsce
+          npm install -g ovsx
 
       - name: Package extension
         run: |
@@ -64,6 +71,18 @@ jobs:
           fi
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+
+      - name: Publish to OpenVSX Registry (Cursor Marketplace)
+        if: github.event.inputs.publish_to_openvsx == 'true'
+        run: |
+          if [ "${{ github.event.inputs.release_type }}" = "pre-release" ]; then
+            ovsx publish --pre-release -p "$OVSX_TOKEN"
+          else
+            ovsx publish -p "$OVSX_TOKEN"
+          fi
+        env:
+          OVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}
+        continue-on-error: true
 
       - name: Create Git Tag (for releases only)
         if: github.event.inputs.release_type == 'release'

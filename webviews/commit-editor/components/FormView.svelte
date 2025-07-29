@@ -35,17 +35,40 @@
     commitData.selectedFlags = event.detail
     dispatch('change', commitData)
   }
+
+  function handleAIGenerate() {
+    // 清除将要被 AI 生成的字段
+    const clearedData = { ...commitData }
+
+    // 根据 aiFieldConfig 清除相应字段
+    if (aiFieldConfig.scope) {
+      clearedData.scope = ''
+    }
+    if (aiFieldConfig.body) {
+      clearedData.body = ''
+    }
+
+    // 总是清除 description，因为 AI 总是会生成它
+    clearedData.description = ''
+
+    // 可选：也清除 footer，如果你希望 AI 重新生成
+    // clearedData.footer = ''
+
+    dispatch('change', clearedData)
+
+    // 发送 AI 生成请求
+    vscode.postMessage({
+      command: 'generateAiCommitForForm',
+      config: aiFieldConfig,
+    })
+  }
 </script>
 
 <div class="space-y-4">
   <div class="flex justify-between items-center">
     <h3 class="text-base font-medium">Form</h3>
     <AITrigger
-      on:click={() =>
-        vscode.postMessage({
-          command: 'generateAiCommitForForm',
-          config: aiFieldConfig,
-        })}
+      on:click={handleAIGenerate}
       {disabled}
       {loading}
     />

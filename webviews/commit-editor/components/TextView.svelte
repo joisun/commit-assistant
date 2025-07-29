@@ -34,12 +34,20 @@
       autoGrow()
     }
   }
+
+  function handleAIGenerate() {
+    // 清除当前的文本内容
+    value = ''
+
+    // 发送 AI 生成请求
+    vscode.postMessage({ command: 'generateAiCommitForText' })
+  }
 </script>
 
 <div>
   <div class="flex justify-between items-center mb-1">
     <label for="commit-text" class="block text-sm font-medium">Commit Message</label>
-    <AITrigger on:click={() => vscode.postMessage({ command: 'generateAiCommitForText' })} {disabled} {loading} />
+    <AITrigger on:click={handleAIGenerate} {disabled} {loading} />
   </div>
   <textarea bind:this={textarea} id="commit-text" rows="4" bind:value on:input={autoGrow} placeholder="Write your commit message here..." class="w-full resize-none overflow-hidden"></textarea>
 
