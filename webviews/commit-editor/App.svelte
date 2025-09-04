@@ -100,9 +100,7 @@
             commitData.selectedFlags = loadedCommitData.selectedFlags || []
           }
           textContent = state.textContent || ''
-          break
-        case 'loadFlags':
-          flags = message.flags || {}
+          flags = state.flags || {}
           break
         case 'loadConfig':
           flags = message.config.flags || {}
@@ -153,18 +151,10 @@
     JSON.stringify(commitData)
     JSON.stringify(flags)
 
-    // Post the state to the extension host (without flags)
+    // Post the state to the extension host
     vscode.postMessage({
       command: 'saveState',
-      state: { currentView, commitData, textContent },
-    })
-  }
-
-  // Separate reactive block for flags to save them globally
-  $: if (flags) {
-    vscode.postMessage({
-      command: 'saveFlags',
-      flags: flags,
+      state: { currentView, commitData, textContent, flags },
     })
   }
 </script>

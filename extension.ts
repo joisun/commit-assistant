@@ -9,11 +9,7 @@ interface WebviewState {
   currentView: 'form' | 'text' | 'flags'
   commitData: any
   textContent: string
-}
-
-// Define the shape of the global flags state
-interface GlobalFlagsState {
-  flags: Record<string, string[]>
+  flags?: Record<string, string[]>
 }
 
 // New interfaces for our settings structure
@@ -96,14 +92,12 @@ class CommitEditorPanel {
             vscode.window.showErrorMessage(message.text)
             return
           case 'saveState':
-            this._context.workspaceState.update('state', {
-              currentView: message.state.currentView,
-              commitData: message.state.commitData,
-              textContent: message.state.textContent,
-            })
-            return
-          case 'saveFlags':
-            this._context.globalState.update('flags', { flags: message.flags })
+            // Save flags to global state
+            if (message.state.flags) {
+              this._context.globalState.update('flags', message.state.flags)
+            }
+            // Save other state to workspace state
+            this._context.workspaceState.update('state', message.state)
             return
           case 'openSettings':
             vscode.commands.executeCommand('commitAssistant.openSettings')
@@ -258,17 +252,25 @@ class CommitEditorPanel {
 
     this._sendConfig()
 
-    // Send stored state to the webview
+    // Load state from workspace and global storage
     const storedState = this._context.workspaceState.get<WebviewState>('state')
-    if (storedState) {
-      this._panel.webview.postMessage({ command: 'loadState', state: storedState })
-    }
+    const globalFlags = this._context.globalState.get<Record<string, string[]>>('flags')
 
-    // Send stored flags to the webview
-    const storedFlags = this._context.globalState.get<GlobalFlagsState>('flags')
-    if (storedFlags) {
-      this._panel.webview.postMessage({ command: 'loadFlags', flags: storedFlags.flags })
-    }
+    // Merge workspace state with global flags
+    const mergedState = storedState
+      ? {
+          ...storedState,
+          flags: globalFlags || storedState.flags || {},
+        }
+      : {
+          currentView: 'form',
+          commitData: {},
+          textContent: '',
+          flags: globalFlags || {},
+        }
+
+    // Send merged state to the webview
+    this._panel.webview.postMessage({ command: 'loadState', state: mergedState })
   }
 
   private _sendConfig() {
