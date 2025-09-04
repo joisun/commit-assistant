@@ -9,6 +9,10 @@ interface WebviewState {
   currentView: 'form' | 'text' | 'flags'
   commitData: any
   textContent: string
+}
+
+// Define the shape of the global flags state
+interface GlobalFlagsState {
   flags: Record<string, string[]>
 }
 
@@ -92,7 +96,14 @@ class CommitEditorPanel {
             vscode.window.showErrorMessage(message.text)
             return
           case 'saveState':
-            this._context.workspaceState.update('state', message.state)
+            this._context.workspaceState.update('state', {
+              currentView: message.state.currentView,
+              commitData: message.state.commitData,
+              textContent: message.state.textContent,
+            })
+            return
+          case 'saveFlags':
+            this._context.globalState.update('flags', { flags: message.flags })
             return
           case 'openSettings':
             vscode.commands.executeCommand('commitAssistant.openSettings')
@@ -251,6 +262,12 @@ class CommitEditorPanel {
     const storedState = this._context.workspaceState.get<WebviewState>('state')
     if (storedState) {
       this._panel.webview.postMessage({ command: 'loadState', state: storedState })
+    }
+
+    // Send stored flags to the webview
+    const storedFlags = this._context.globalState.get<GlobalFlagsState>('flags')
+    if (storedFlags) {
+      this._panel.webview.postMessage({ command: 'loadFlags', flags: storedFlags.flags })
     }
   }
 
