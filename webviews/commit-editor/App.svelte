@@ -23,7 +23,7 @@
   }
 
   let textContent = ''
-  let flags: Record<string, Record<string, { deadline?: string }>> = {}
+  let flags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {}
   let commitTypes: { value: string; label: string; description?: string }[] = []
   let themeDeadlineConfig: ThemeDeadlineConfig = DEFAULT_THEME_DEADLINE_CONFIG
   let preview = ''

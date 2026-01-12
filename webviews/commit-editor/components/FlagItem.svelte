@@ -11,21 +11,23 @@
   } from '../../../src/constants/theme-deadline';
 
   export let flagName: string;
-  export let themes: Record<string, { deadline?: string }>;
+  export let themes: Record<string, { deadline?: string; docUrl?: string }>;
   export let themeDeadlineConfig: ThemeDeadlineConfig;
 
   const dispatch = createEventDispatcher();
 
   let newThemeName = '';
   let newThemeDeadline = '';
+  let newThemeDocUrl = '';
 
   function addTheme() {
     if (!newThemeName.trim()) {
       return;
     }
-    dispatch('addTheme', { flagName, themeName: newThemeName, deadline: newThemeDeadline });
+    dispatch('addTheme', { flagName, themeName: newThemeName, deadline: newThemeDeadline, docUrl: newThemeDocUrl });
     newThemeName = '';
     newThemeDeadline = '';
+    newThemeDocUrl = '';
   }
 
   function updateTheme(event: CustomEvent) {
@@ -58,11 +60,12 @@
 
   <div class="pl-4 pr-1 pb-1.5">
     <div class="space-y-0.5">
-      {#each Object.entries(themes) as [themeName, { deadline }]}
+      {#each Object.entries(themes) as [themeName, { deadline, docUrl }]}
         <ThemeItem
           {flagName}
           {themeName}
           {deadline}
+          {docUrl}
           {themeDeadlineConfig}
           on:updateTheme={updateTheme}
           on:deleteTheme={deleteTheme}
@@ -72,6 +75,7 @@
     <div class="flex space-x-1.5 mt-1.5 h-6 items-center">
       <input type="text" bind:value={newThemeName} placeholder="New theme..." class="w-full" on:keydown={handleKeydown} />
       <input type="date" bind:value={newThemeDeadline} class="deadline-input" />
+      <input type="text" bind:value={newThemeDocUrl} placeholder="Doc URL" class="doc-url-input" on:keydown={handleKeydown} />
       <button on:click={addTheme} class="add-button">
         <Plus className="w-3.5 h-3.5" />
       </button>
@@ -88,6 +92,11 @@
     padding: 1px 6px;
     font-size: var(--vscode-font-size);
     height: 100%;
+  }
+  .doc-url-input {
+    width: 120px;
+    font-size: 11px;
+    flex-shrink: 0;
   }
   button {
     display: flex;

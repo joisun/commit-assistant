@@ -9,7 +9,7 @@ interface WebviewState {
   currentView: 'form' | 'text' | 'flags'
   commitData: any
   textContent: string
-  flags?: Record<string, Record<string, { deadline?: string }>>
+  flags?: Record<string, Record<string, { deadline?: string; docUrl?: string }>>
 }
 
 // New interfaces for our settings structure

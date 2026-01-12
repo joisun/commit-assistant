@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import Minus from './icons/Minus.svelte';
+  import Link from './icons/Link.svelte';
   import {
     calculateDeadlineStatus,
     formatDeadline,
@@ -10,7 +11,7 @@
 
   export let selectedFlag: string;
   export let selectedTheme: string;
-  export let availableFlags: Record<string, Record<string, { deadline?: string }>> = {};
+  export let availableFlags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {};
   export let themeDeadlineConfig: ThemeDeadlineConfig;
 
   const dispatch = createEventDispatcher();
@@ -56,6 +57,11 @@
   <button on:click={remove} class="remove-button" title="Remove Flag">
     <Minus />
   </button>
+  {#if selectedThemeData?.docUrl}
+    <a href={selectedThemeData.docUrl} class="doc-link" title={selectedThemeData.docUrl}>
+      <Link className="w-4 h-4" />
+    </a>
+  {/if}
 </div>
 
 {#if selectedThemeData?.deadline}
@@ -97,6 +103,16 @@
   }
   .remove-button:hover {
     opacity: 1;
+  }
+  .doc-link {
+    color: var(--vscode-textLink-foreground);
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    margin-left: 2px;
+  }
+  .doc-link:hover {
+      opacity: 1;
   }
   .deadline-tag {
     padding: 2px 4px;

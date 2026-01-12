@@ -5,7 +5,7 @@
   import type { ThemeDeadlineConfig } from '../../../src/constants/theme-deadline';
 
   export let selectedFlags: { flag: string; theme: string; deadline?: string }[] = []
-  export let availableFlags: Record<string, Record<string, { deadline?: string }>> = {}
+  export let availableFlags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {}
   export let themeDeadlineConfig: ThemeDeadlineConfig;
 
   const dispatch = createEventDispatcher()

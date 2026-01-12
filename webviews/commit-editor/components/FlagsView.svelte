@@ -4,7 +4,7 @@
   import FlagItem from './FlagItem.svelte';
   import type { ThemeDeadlineConfig } from '../../../src/constants/theme-deadline';
 
-  export let flags: Record<string, Record<string, { deadline?: string }>> = {};
+  export let flags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {};
   export let themeDeadlineConfig: ThemeDeadlineConfig;
 
   let newFlagName = '';
@@ -21,17 +21,17 @@
   }
 
   function handleAddTheme(event: CustomEvent) {
-    const { flagName, themeName, deadline } = event.detail;
+    const { flagName, themeName, deadline, docUrl } = event.detail;
     if (themeName && !flags[flagName][themeName]) {
-      flags[flagName][themeName] = { deadline };
+      flags[flagName][themeName] = { deadline, docUrl };
       flags = { ...flags }; // Trigger reactivity
     }
   }
 
   function handleUpdateTheme(event: CustomEvent) {
-    const { flagName, themeName, deadline } = event.detail;
+    const { flagName, themeName, deadline, docUrl } = event.detail;
     if (flags[flagName] && flags[flagName][themeName]) {
-      flags[flagName][themeName].deadline = deadline;
+      flags[flagName][themeName] = { ...flags[flagName][themeName], deadline, docUrl };
       flags = { ...flags };
     }
   }

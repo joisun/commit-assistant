@@ -7,7 +7,7 @@
   export let commitData: {
     selectedFlags: { flag: string; theme: string }[]
   }
-  export let flags: Record<string, Record<string, { deadline?: string }>> = {}
+  export let flags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {}
   export let themeDeadlineConfig: any;
   export let disabled = false
   export let loading = false
