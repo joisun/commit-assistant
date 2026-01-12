@@ -29,8 +29,8 @@
 </script>
 
 <div class="theme-item">
-  <span class="text-sm">{themeName}</span>
-  <div class="flex items-center space-x-1.5">
+  <span class="text-sm truncate mr-2">{themeName}</span>
+  <div class="flex items-center space-x-1.5 flex-shrink-0">
     <input
       type="date"
       class="deadline-input"
@@ -51,19 +51,27 @@
     align-items: center;
     height: 24px;
     padding-left: 6px;
-    padding-right: 0px;
+    padding-right: 2px;
     border-radius: 3px;
     background-color: rgba(var(--vscode-editor-foreground-rgb), 0.04);
   }
+  .theme-item span {
+    flex-grow: 1;
+    min-width: 0;
+  }
   .deadline-input {
+    box-sizing: border-box;
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1px solid var(--vscode-input-border);
     border-radius: 3px;
-    padding: 1px 6px;
-    font-size: var(--vscode-font-size);
-    height: 100%;
-    flex-grow: 1;
+    padding: 1px 4px;
+    font-size: 11px;
+    height: 20px;
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
+    flex-shrink: 0;
   }
   button {
     display: flex;

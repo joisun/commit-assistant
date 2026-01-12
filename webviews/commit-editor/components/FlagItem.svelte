@@ -136,12 +136,17 @@
     opacity: 0.8;
   }
   .deadline-input {
+    box-sizing: border-box;
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1px solid var(--vscode-input-border);
     border-radius: 3px;
-    padding: 1px 6px;
-    font-size: var(--vscode-font-size);
-    height: 100%;
+    padding: 1px 4px;
+    font-size: 11px;
+    height: 20px;
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
+    flex-shrink: 0;
   }
 </style>
