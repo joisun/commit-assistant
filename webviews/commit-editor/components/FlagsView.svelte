@@ -7,6 +7,8 @@
   export let flags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {};
   export let themeDeadlineConfig: ThemeDeadlineConfig;
 
+  const dispatch = createEventDispatcher();
+
   let newFlagName = '';
 
   function addFlag() {
@@ -48,6 +50,10 @@
     flags = flags; // Trigger reactivity
   }
 
+  function handleOpenUrl(event: CustomEvent) {
+    dispatch('openUrl', event.detail);
+  }
+
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -69,6 +75,7 @@
         on:updateTheme={handleUpdateTheme}
         on:deleteTheme={handleDeleteTheme}
         on:deleteFlag={handleDeleteFlag}
+        on:openUrl={handleOpenUrl}
       />
     {/each}
   </div>

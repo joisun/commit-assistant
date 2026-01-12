@@ -38,6 +38,10 @@
     dispatch('deleteTheme', event.detail);
   }
 
+  function openUrl(event: CustomEvent) {
+    dispatch('openUrl', event.detail);
+  }
+
   function deleteFlag() {
     dispatch('deleteFlag', flagName);
   }
@@ -69,13 +73,14 @@
           {themeDeadlineConfig}
           on:updateTheme={updateTheme}
           on:deleteTheme={deleteTheme}
+          on:openUrl={openUrl}
         />
       {/each}
     </div>
     <div class="flex space-x-1.5 mt-1.5 h-6 items-center">
-      <input type="text" bind:value={newThemeName} placeholder="New theme..." class="w-full" on:keydown={handleKeydown} />
-      <input type="date" bind:value={newThemeDeadline} class="deadline-input" />
+      <input type="text" bind:value={newThemeName} placeholder="New theme..." class="theme-name-input" on:keydown={handleKeydown} />
       <input type="text" bind:value={newThemeDocUrl} placeholder="Doc URL" class="doc-url-input" on:keydown={handleKeydown} />
+      <input type="date" bind:value={newThemeDeadline} class="deadline-input" />
       <button on:click={addTheme} class="add-button">
         <Plus className="w-3.5 h-3.5" />
       </button>
@@ -84,18 +89,27 @@
 </div>
 
 <style>
-  input {
+  .theme-name-input {
+    box-sizing: border-box;
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1px solid var(--vscode-input-border);
     border-radius: 3px;
-    padding: 1px 6px;
-    font-size: var(--vscode-font-size);
-    height: 100%;
+    padding: 1px 4px;
+    font-size: 11px;
+    height: 20px;
+    width: 100%; /* theme name input should fill remaining space */
   }
   .doc-url-input {
-    width: 120px;
+    box-sizing: border-box;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 3px;
+    padding: 1px 4px;
     font-size: 11px;
+    height: 20px;
+    width: 200px;
     flex-shrink: 0;
   }
   button {

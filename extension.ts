@@ -99,7 +99,20 @@ class CommitEditorPanel {
           case 'openSettings':
             vscode.commands.executeCommand('commitAssistant.openSettings')
             return
-          case 'generateAiCommitForText':
+          case 'openExternalUrl':
+            if (message.url) {
+              let url = message.url.trim();
+              if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+              }
+              try {
+                vscode.env.openExternal(vscode.Uri.parse(url));
+              } catch (e) {
+                vscode.window.showErrorMessage(`Failed to open URL: ${message.url}`);
+              }
+            }
+            return
+          case 'aiStart':
             this._generateAiCommitForText()
             return
           case 'generateAiCommitForForm':

@@ -21,6 +21,10 @@
     dispatch('change', commitData)
   }
 
+  function handleOpenUrl(event: CustomEvent) {
+    dispatch('openUrl', event.detail);
+  }
+
   function autoGrow() {
     textarea.style.height = 'auto'
     textarea.style.height = `${textarea.scrollHeight}px`
@@ -53,7 +57,13 @@
   <textarea bind:this={textarea} id="commit-text" rows="4" bind:value on:input={autoGrow} placeholder="Write your commit message here..." class="w-full resize-none overflow-hidden"></textarea>
 
   <div class="mt-4">
-    <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} {themeDeadlineConfig} />
+    <FlagsInput
+      selectedFlags={commitData.selectedFlags}
+      availableFlags={flags}
+      on:change={handleFlagsChange}
+      {themeDeadlineConfig}
+      on:openUrl={handleOpenUrl}
+    />
   </div>
 </div>
 

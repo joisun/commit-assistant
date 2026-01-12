@@ -72,6 +72,10 @@
     vscode.postMessage({ command: 'cancel' })
   }
 
+  function handleOpenUrl(event: CustomEvent) {
+    vscode.postMessage({ command: 'openExternalUrl', url: event.detail });
+  }
+
   function handleKeydown(event: KeyboardEvent) {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       event.preventDefault()
@@ -163,7 +167,7 @@
   }
 </script>
 
-<main class="p-4 sm:p-6 font-sans flex flex-col h-full">
+<main class="p-4 sm:p-6 font-sans flex flex-col h-full min-w-[500px]">
   <div class="flex-shrink-0">
     <div class="flex justify-between items-center mb-4">
       <h1 class="text-xl font-bold">🤖 Commit Assistant</h1>
@@ -187,6 +191,7 @@
         disabled={isAiLoading}
         loading={isAiLoading}
         {vscode}
+        on:openUrl={handleOpenUrl}
       />
     {:else if currentView === 'text'}
       <TextView
@@ -200,9 +205,10 @@
         on:change={(e) => {
           commitData = e.detail
         }}
+        on:openUrl={handleOpenUrl}
       />
     {:else if currentView === 'flags'}
-      <FlagsView bind:flags {themeDeadlineConfig} />
+      <FlagsView bind:flags {themeDeadlineConfig} on:openUrl={handleOpenUrl} />
     {/if}
   </div>
 

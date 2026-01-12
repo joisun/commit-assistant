@@ -1,7 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import Minus from './icons/Minus.svelte';
-  import Link from './icons/Link.svelte';
   import {
     calculateDeadlineStatus,
     formatDeadline,
@@ -22,6 +21,10 @@
 
   function remove() {
     dispatch('remove');
+  }
+
+  function openUrl(url: string) {
+    dispatch('openUrl', url);
   }
 
   $: availableThemes = Object.keys(availableFlags[selectedFlag] || {});
@@ -57,20 +60,38 @@
   <button on:click={remove} class="remove-button" title="Remove Flag">
     <Minus />
   </button>
-  {#if selectedThemeData?.docUrl}
-    <a href={selectedThemeData.docUrl} class="doc-link" title={selectedThemeData.docUrl}>
-      <Link className="w-4 h-4" />
-    </a>
-  {/if}
 </div>
 
-{#if selectedThemeData?.deadline}
-  <div class="text-xs mt-1" style="color: {deadlineColors.text}">
-    Status: {deadlineStatus}
+{#if selectedThemeData?.deadline || selectedThemeData?.docUrl}
+  <div class="text-[11px] mt-1 flex items-center space-x-3 overflow-hidden whitespace-nowrap">
+    {#if selectedThemeData?.deadline}
+      <span style="color: {deadlineColors.text}" class="flex-shrink-0">
+        Deadline: {formatDeadline(selectedThemeData.deadline)}
+      </span>
+    {/if}
+    {#if selectedThemeData?.docUrl}
+      <button
+        on:click={() => openUrl(selectedThemeData.docUrl)}
+        class="flex-1 min-w-0 truncate opacity-80 text-left hover:opacity-100 hover:underline transition-opacity"
+        title={selectedThemeData.docUrl}
+      >
+        URL: {selectedThemeData.docUrl}
+      </button>
+    {/if}
   </div>
 {/if}
 
 <style>
+  button.flex-1 {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    font-size: inherit;
+    font-family: inherit;
+    text-decoration: underline;
+  }
   select {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
@@ -105,11 +126,21 @@
     opacity: 1;
   }
   .doc-link {
+    background: none;
+    border: none;
+    cursor: pointer;
     color: var(--vscode-textLink-foreground);
     opacity: 0.8;
-    display: flex;
+    display: block;
     align-items: center;
-    margin-left: 2px;
+    margin-left: 4px;
+    padding: 0;
+    font-size: 0.85em;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: underline;
   }
   .doc-link:hover {
       opacity: 1;

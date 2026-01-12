@@ -31,6 +31,10 @@
     selectedFlags = selectedFlags.filter((_, i) => i !== index)
     dispatch('change', selectedFlags)
   }
+
+  function handleOpenUrl(event: CustomEvent) {
+    dispatch('openUrl', event.detail);
+  }
 </script>
 
 <div>
@@ -44,6 +48,7 @@
         {themeDeadlineConfig}
         on:update={(e) => handleFlagUpdate(index, e.detail)}
         on:remove={() => handleFlagRemove(index)}
+        on:openUrl={handleOpenUrl}
       />
     {/each}
     <button on:click={addFlagRow} class="add-flag-button">

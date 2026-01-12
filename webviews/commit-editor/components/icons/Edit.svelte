@@ -1,4 +1,1 @@
-<script>
-  export let className = "w-4 h-4";
-</script>
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={className}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...$$props}><!-- Icon from Material Design Icons by Pictogrammers - https://github.com/Templarian/MaterialDesign/blob/master/LICENSE --><path fill="currentColor" d="M13 22v-2.04l6.13-6.13l2.04 2.05L15.04 22zm8.53-9.85l1.32 1.32c.2.2.2.53 0 .72l-.98.98l-2.04-2.04l.98-.98c.19-.2.52-.2.72 0m-.99-3.69c.19.19.36.4.52.62l-1.38 1.37C19.15 9.5 18.15 8.9 17 8.9h-4V7h4c1.33 0 2.6.53 3.54 1.46M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-1.33 0-2.6.53-3.54 1.46C2.53 9.4 2 10.67 2 12s.53 2.6 1.46 3.54C4.4 16.47 5.67 17 7 17h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8z"/></svg>

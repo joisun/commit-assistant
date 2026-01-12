@@ -40,44 +40,30 @@
     dispatch('change', commitData)
   }
 
-  function handleAIGenerate() {
-    // 清除将要被 AI 生成的字段
-    const clearedData = { ...commitData }
-
-    // 根据 aiFieldConfig 清除相应字段
-    if (aiFieldConfig.scope) {
-      clearedData.scope = ''
-    }
-    if (aiFieldConfig.body) {
-      clearedData.body = ''
-    }
-
-    // 总是清除 description，因为 AI 总是会生成它
-    clearedData.description = ''
-
-    // 可选：也清除 footer，如果你希望 AI 重新生成
-    // clearedData.footer = ''
-
-    dispatch('change', clearedData)
-
-    // 发送 AI 生成请求
-    vscode.postMessage({
-      command: 'generateAiCommitForForm',
-      config: aiFieldConfig,
-    })
+  function handleOpenUrl(event: CustomEvent) {
+    dispatch('openUrl', event.detail);
   }
 </script>
 
 <div class="space-y-4">
-  <div class="flex justify-between items-center">
-    <h3 class="text-base font-medium">Form</h3>
+  <div class="mt-4">
     <AITrigger
-      on:click={handleAIGenerate}
+      on:generate={() =>
+        dispatch('aiGenerate', {
+          config: aiFieldConfig,
+          formData: commitData,
+        })}
       {disabled}
       {loading}
     />
   </div>
-  <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} {themeDeadlineConfig} />
+  <FlagsInput
+    selectedFlags={commitData.selectedFlags}
+    availableFlags={flags}
+    on:change={handleFlagsChange}
+    {themeDeadlineConfig}
+    on:openUrl={handleOpenUrl}
+  />
   <div>
     <label for="type" class="block text-sm font-medium mb-1">Type</label>
     <CustomSelect items={commitTypes} selectedValue={commitData.type} on:change={(e) => update('type', e.detail)} placeholder="Select type..." />
