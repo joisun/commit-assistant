@@ -71,13 +71,29 @@
   />
   <div>
     <label for="type" class="block text-sm font-medium mb-1">Type</label>
-    <CustomSelect items={commitTypes} selectedValue={commitData.type} on:change={(e) => update('type', e.detail)} placeholder="Select type..." />
+    <CustomSelect
+      items={commitTypes}
+      selectedValue={commitData.type}
+      on:change={(e) => update('type', e.detail)}
+      placeholder="Select type..."
+      loading={loading}
+      preference={preference}
+      selectedType={commitData.type}
+    />
   </div>
   <div class="flex items-center justify-between pr-2">
     <label for="scope" class="block text-sm font-medium">Scope <span class="text-gray-400">(optional)</span></label>
     <input type="checkbox" bind:checked={aiFieldConfig.scope} title="Generate AI content for this field" />
   </div>
-  <input type="text" id="scope" class="w-full" value={commitData.scope} on:input={(e) => update('scope', e.currentTarget.value)} placeholder="e.g., auth, ui, api" />
+  <input
+    type="text"
+    id="scope"
+    class="w-full"
+    class:creative-loading={loading && preference?.loadingEffect === 'creative' && aiFieldConfig.scope}
+    value={commitData.scope}
+    on:input={(e) => update('scope', e.currentTarget.value)}
+    placeholder="e.g., auth, ui, api"
+  />
   <div>
     <label for="description" class="block text-sm font-medium mb-1">Description</label>
     <input
@@ -95,7 +111,14 @@
     <label for="body" class="block text-sm font-medium">Body <span class="text-gray-400">(optional)</span></label>
     <input type="checkbox" bind:checked={aiFieldConfig.body} title="Generate AI content for this field" />
   </div>
-  <textarea id="body" rows="4" class="w-full" value={commitData.body} on:input={(e) => update('body', e.currentTarget.value)} placeholder="Detailed description of changes"></textarea>
+  <textarea
+    id="body"
+    rows="4"
+    class="w-full"
+    class:creative-loading={loading && preference?.loadingEffect === 'creative' && aiFieldConfig.body}
+    value={commitData.body}
+    on:input={(e) => update('body', e.currentTarget.value)}
+    placeholder="Detailed description of changes"></textarea>
   <div>
     <label for="footer" class="block text-sm font-medium mb-1">Footer <span class="text-gray-400">(optional)</span></label>
     <textarea id="footer" rows="2" class="w-full" value={commitData.footer} on:input={(e) => update('footer', e.currentTarget.value)} placeholder="e.g., Closes #123, Breaking change info"></textarea>
@@ -159,24 +182,27 @@
   .creative-loading {
     background: linear-gradient(
       to right,
-      #ff0000,
-      #ff7f00,
-      #ffff00,
-      #00ff00,
-      #0000ff,
-      #4b0082,
-      #9400d3
+      rgba(52, 211, 153, 0.15) 0%,    /* Emerald */
+      rgba(59, 130, 246, 0.15) 25%,   /* Blue */
+      rgba(139, 92, 246, 0.15) 50%,   /* Violet */
+      rgba(236, 72, 153, 0.15) 75%,   /* Pink */
+      rgba(52, 211, 153, 0.15) 100%   /* Emerald - smooth cycle */
     );
     background-size: 200% 100%;
-    animation: rainbow-flow 2s linear infinite;
+    animation: elegant-flow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    border-radius: 4px;
+    box-shadow: inset 0 0 20px rgba(52, 211, 153, 0.1);
   }
 
-  @keyframes rainbow-flow {
+  @keyframes elegant-flow {
     0% {
+      background-position: 0% 0;
+    }
+    50% {
       background-position: 100% 0;
     }
     100% {
-      background-position: -100% 0;
+      background-position: 0% 0;
     }
   }
 </style>
