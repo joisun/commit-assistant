@@ -38,7 +38,6 @@
 </script>
 
 <div>
-  <label class="block text-sm font-medium mb-1">Flags <span class="text-gray-400">(optional)</span></label>
   <div class="space-y-2">
     {#each selectedFlags as { flag, theme }, index}
       <FlagRow
@@ -59,9 +58,6 @@
 </div>
 
 <style>
-  label {
-    color: var(--vscode-foreground);
-  }
   .add-flag-button {
     display: flex;
     align-items: center;

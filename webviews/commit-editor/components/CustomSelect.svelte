@@ -46,7 +46,7 @@
   {#if isOpen}
     <div class="custom-select-options">
       {#each items as item (item.value)}
-        <div class="option-item" class:selected={item.value === selectedValue} on:click={() => selectItem(item.value)} role="option" aria-selected={item.value === selectedValue}>
+        <div class="option-item" class:selected={item.value === selectedValue} on:click={() => selectItem(item.value)} on:keydown={(e) => e.key === 'Enter' && selectItem(item.value)} role="option" tabindex="0" aria-selected={item.value === selectedValue}>
           <div class="option-label">{item.label}</div>
           {#if item.description}
             <div class="option-description">{item.description}</div>

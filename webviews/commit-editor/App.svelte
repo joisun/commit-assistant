@@ -26,6 +26,7 @@
   let flags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {}
   let commitTypes: { value: string; label: string; description?: string }[] = []
   let themeDeadlineConfig: ThemeDeadlineConfig = DEFAULT_THEME_DEADLINE_CONFIG
+  let preference = { loadingEffect: 'creative' };
   let preview = ''
   let isAiLoading = false
 
@@ -112,6 +113,7 @@
           flags = message.config.flags || {}
           commitTypes = message.config.commitTypes || []
           themeDeadlineConfig = { ...DEFAULT_THEME_DEADLINE_CONFIG, ...(message.config.themeDeadline || {}) }
+          preference = message.config.preference || { loadingEffect: 'creative' };
           break
         case 'aiStart':
           isAiLoading = true
@@ -185,6 +187,7 @@
         {flags}
         {commitTypes}
         {themeDeadlineConfig}
+        {preference}
         on:change={(e) => {
           commitData = e.detail
         }}

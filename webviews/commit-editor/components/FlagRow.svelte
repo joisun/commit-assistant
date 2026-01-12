@@ -125,30 +125,4 @@
   .remove-button:hover {
     opacity: 1;
   }
-  .doc-link {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--vscode-textLink-foreground);
-    opacity: 0.8;
-    display: block;
-    align-items: center;
-    margin-left: 4px;
-    padding: 0;
-    font-size: 0.85em;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-decoration: underline;
-  }
-  .doc-link:hover {
-      opacity: 1;
-  }
-  .deadline-tag {
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-size: 0.75rem;
-    margin-left: 8px;
-  }
 </style>

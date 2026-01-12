@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import * as path from 'path'
 import { getAvailableModels, generateCommitMessage, generateStructuredCommitMessage } from './src/ai/ai-service'
 import { Logger } from './src/utils/logger'
+import { DEFAULT_THEME_DEADLINE_CONFIG } from './src/constants/theme-deadline'
 import { simpleGit } from 'simple-git'
 
 // Define the shape of the state object
@@ -27,6 +28,8 @@ interface AllSettings {
   providers: {
     [key: string]: ProviderSettings
   }
+  themeDeadline?: any
+  preference?: any
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -288,7 +291,10 @@ class CommitEditorPanel {
   private _sendConfig() {
     const config = vscode.workspace.getConfiguration('commitAssistant')
     const commitTypesFromConfig = config.get('commitTypes') as any[] || []
-    const themeDeadline = config.get('themeDeadline')
+    
+    const aiSettings = this._context.globalState.get<any>('aiSettings');
+    const themeDeadline = aiSettings?.themeDeadline;
+    const preference = aiSettings?.preference;
 
     const commitTypes = [
       { value: 'auto', label: 'Auto', description: 'Let the AI select the type' },
@@ -301,6 +307,7 @@ class CommitEditorPanel {
       config: {
         commitTypes,
         themeDeadline,
+        preference,
         flags: {}, // Placeholder for future flag configuration
       },
     })
@@ -412,9 +419,30 @@ class SettingsPanel {
   private _sendAllSettings() {
     const storedSettings = this._context.globalState.get<AllSettings>('aiSettings')
 
+    // Ensure themeDeadline colors are valid hex values, not CSS variables
+    let updatedSettings = storedSettings
+    if (storedSettings?.themeDeadline?.colors) {
+      // Check if colors are CSS variables (start with 'var(') and replace with default hex values
+      const colors = storedSettings.themeDeadline.colors
+      const hasInvalidColors = Object.values(colors).some((color: any) => 
+        typeof color === 'string' && color.includes('var(')
+      )
+      
+      if (hasInvalidColors) {
+        updatedSettings = {
+          ...storedSettings,
+          themeDeadline: {
+            ...storedSettings.themeDeadline,
+            colors: DEFAULT_THEME_DEADLINE_CONFIG.colors, // Use fresh hex values
+          },
+        }
+      }
+    }
+
     this._panel.webview.postMessage({
       command: 'loadSettings',
-      settings: storedSettings, // Send stored settings directly
+      settings: updatedSettings,
+      defaultThemeDeadlineConfig: DEFAULT_THEME_DEADLINE_CONFIG,
     })
   }
 

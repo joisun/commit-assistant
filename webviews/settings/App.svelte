@@ -25,9 +25,12 @@
     maxLength: number
     debug: boolean
     providers: {
-      [key: string]: ProviderSettings
+      [key:string]: ProviderSettings
     }
     themeDeadline: ThemeDeadlineConfig
+    preference: {
+      loadingEffect: 'simple' | 'creative'
+    }
   }
 
   // State
@@ -38,6 +41,9 @@
     debug: false,
     providers: {},
     themeDeadline: DEFAULT_THEME_DEADLINE_CONFIG,
+    preference: {
+      loadingEffect: 'creative'
+    }
   }
 
   let availableModels: Model[] = []
@@ -117,13 +123,34 @@
       switch (message.command) {
         case 'loadSettings':
           const loadedSettings = message.settings || {}
+          console.log('Received loadedSettings:', loadedSettings);
+          console.log('DEFAULT_THEME_DEADLINE_CONFIG:', DEFAULT_THEME_DEADLINE_CONFIG);
+
+          const loadedThemeDeadline = loadedSettings.themeDeadline || {};
+
           settings = {
             activeProvider: loadedSettings.activeProvider || 'openai',
             language: loadedSettings.language || 'en',
             maxLength: loadedSettings.maxLength || 50,
             debug: loadedSettings.debug || false,
             providers: loadedSettings.providers || {},
-            themeDeadline: { ...DEFAULT_THEME_DEADLINE_CONFIG, ...(loadedSettings.themeDeadline || {}) },
+            themeDeadline: {
+              ...DEFAULT_THEME_DEADLINE_CONFIG,
+              ...loadedThemeDeadline,
+              colors: {
+                ...DEFAULT_THEME_DEADLINE_CONFIG.colors,
+                ...(loadedThemeDeadline.colors || {}),
+              },
+            },
+            preference: loadedSettings.preference || { loadingEffect: 'creative' }
+          }
+          console.log('Final merged settings.themeDeadline:', settings.themeDeadline);
+
+          // Ensure all provider keys exist after loading
+          for (const p of providerIds) {
+            if (!settings.providers[p.id]) {
+              settings.providers[p.id] = { apiKey: '', model: '' }
+            }
           }
           // Ensure all provider keys exist after loading
           for (const p of providerIds) {
@@ -227,6 +254,18 @@
     <select id="language" class="w-full" bind:value={settings.language} on:change={debouncedSave}>
       <option value="en">English</option>
       <option value="zh">中文 (Chinese)</option>
+    </select>
+  </div>
+
+  <div class="border-t" style="border-color: var(--vscode-input-border);"></div>
+
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold">Preferences</h3>
+    <p class="text-sm" style="color: var(--vscode-descriptionForeground);">Customize the look and feel of the assistant.</p>
+    <label for="loadingEffect" class="block text-sm font-medium">Loading Effect</label>
+    <select id="loadingEffect" class="w-full" bind:value={settings.preference.loadingEffect} on:change={debouncedSave}>
+      <option value="creative">Creative</option>
+      <option value="simple">Simple</option>
     </select>
   </div>
 

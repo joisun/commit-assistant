@@ -73,7 +73,6 @@
           bind:value={editingUrlValue}
           placeholder="https://..."
           on:keydown={handleKeydown}
-          autofocus
         />
         <button on:click={saveUrl} class="action-button" title="Save URL">
           <Check class="w-3.5 h-3.5" />

@@ -20,9 +20,9 @@ export const DEFAULT_THEME_DEADLINE_CONFIG: ThemeDeadlineConfig = {
   warningThreshold: 3,
   overdueThreshold: 0,
   colors: {
-    healthy: 'var(--vscode-testing-iconPassed)', // Green
-    warning: 'var(--vscode-testing-iconUnset)', // Yellow
-    overdue: 'var(--vscode-testing-iconFailed)', // Red
+    healthy: '#34D399',
+    warning: '#FBBF24',
+    overdue: '#F87171',
   },
 };
 

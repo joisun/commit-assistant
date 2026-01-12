@@ -124,16 +124,6 @@
     flex-shrink: 0;
     transition: all 0.15s ease-in-out;
   }
-  .theme-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 24px;
-    padding-left: 6px;
-    padding-right: 0px;
-    border-radius: 3px;
-    background-color: rgba(var(--vscode-editor-foreground-rgb), 0.04);
-  }
   .add-button {
     color: var(--vscode-editor-foreground);
     background-color: rgba(var(--vscode-editor-foreground-rgb), 0.1);
@@ -147,14 +137,6 @@
     background-color: rgba(var(--vscode-editor-foreground-rgb), 0.1);
   }
   .delete-flag-button:hover {
-    background-color: rgba(var(--vscode-editor-foreground-rgb), 0.15);
-    opacity: 0.8;
-  }
-  .delete-theme-button {
-    color: var(--vscode-editor-foreground);
-    background-color: rgba(var(--vscode-editor-foreground-rgb), 0.1);
-  }
-  .delete-theme-button:hover {
     background-color: rgba(var(--vscode-editor-foreground-rgb), 0.15);
     opacity: 0.8;
   }

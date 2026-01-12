@@ -19,6 +19,7 @@
   export let flags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {}
   export let commitTypes: { value: string; label: string; description?: string }[] = []
   export let themeDeadlineConfig: ThemeDeadlineConfig;
+  export let preference: { loadingEffect: string };
   export let disabled = false
   export let loading = false
   export let vscode: any
@@ -83,6 +84,7 @@
       type="text"
       id="description"
       class="w-full"
+      class:creative-loading={loading && preference?.loadingEffect === 'creative'}
       value={commitData.description}
       on:input={(e) => update('description', e.currentTarget.value)}
       placeholder="Brief description of changes"
@@ -118,21 +120,6 @@
     outline: 1px solid var(--vscode-focusBorder);
     outline-offset: -1px;
   }
-  .add-flag-button {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: none;
-    border: 1px solid var(--vscode-button-secondaryBackground);
-    color: var(--vscode-foreground); /* Use a more general foreground color */
-    padding: 2px 8px;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: background-color 0.15s ease-in-out;
-  }
-  .add-flag-button:hover {
-    background-color: var(--vscode-button-secondaryHoverBackground);
-  }
 
   input[type='checkbox'] {
     appearance: none;
@@ -167,5 +154,29 @@
   input[type='checkbox']:focus {
     outline: 1px solid var(--vscode-focusBorder);
     outline-offset: 1px;
+  }
+
+  .creative-loading {
+    background: linear-gradient(
+      to right,
+      #ff0000,
+      #ff7f00,
+      #ffff00,
+      #00ff00,
+      #0000ff,
+      #4b0082,
+      #9400d3
+    );
+    background-size: 200% 100%;
+    animation: rainbow-flow 2s linear infinite;
+  }
+
+  @keyframes rainbow-flow {
+    0% {
+      background-position: 100% 0;
+    }
+    100% {
+      background-position: -100% 0;
+    }
   }
 </style>
