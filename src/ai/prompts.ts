@@ -19,12 +19,17 @@ function getTypeNames(types: any): string {
   return Object.keys(types).join(', ')
 }
 
-export function generateFormPrompt(language: string, maxLength: number, commitTypes: any, diff: string, aiFieldConfig: { scope: boolean; body: boolean; footer: boolean }): string {
+export function generateFormPrompt(language: string, maxLength: number, commitTypes: any, diff: string, aiFieldConfig: { scope: boolean; body: boolean; footer: boolean }, formData?: any): string {
   const types = commitTypes || conventionalCommitTypes
-  let rules = [
-    `**type**: Choose the most appropriate type from this list: ${getTypeNames(types)}.`,
-    `**description**: Write a concise summary of the changes. The description must be a maximum of ${maxLength} characters.`,
-  ]
+  let rules = []
+
+  if (formData && formData.type && formData.type !== 'auto') {
+    rules.push(`**type**: You must use the type "${formData.type}". Do not change it.`)
+  } else {
+    rules.push(`**type**: Choose the most appropriate type from this list: ${getTypeNames(types)}.`)
+  }
+  
+  rules.push(`**description**: Write a concise summary of the changes. The description must be a maximum of ${maxLength} characters.`)
 
   if (aiFieldConfig.scope) {
     rules.push('**scope**: (Optional) Identify a short noun describing the section of the codebase the changes apply to.')

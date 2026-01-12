@@ -151,7 +151,8 @@ export async function generateStructuredCommitMessage(
   diff: string,
   commitTypes: any,
   aiFieldConfig: { scope: boolean; body: boolean; footer: boolean },
-  customBaseUrl?: string
+  customBaseUrl?: string,
+  formData?: any,
 ) {
   const baseUrl = customBaseUrl || providerBaseUrls[provider]
   if (!baseUrl && provider !== 'gemini') {
@@ -181,7 +182,7 @@ export async function generateStructuredCommitMessage(
     footer: aiFieldConfig.footer ? z.string().optional().nullable() : z.undefined().optional(),
   })
 
-  const prompt = generateFormPrompt(language, maxLength, commitTypes, diff, aiFieldConfig)
+  const prompt = generateFormPrompt(language, maxLength, commitTypes, diff, aiFieldConfig, formData)
 
   Logger.debugToOutputChannel('Generate Object Request', {
     provider,

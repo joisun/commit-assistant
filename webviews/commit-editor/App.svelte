@@ -98,7 +98,7 @@
           currentView = state.currentView || 'form'
           const loadedCommitData = state.commitData
           if (loadedCommitData) {
-            commitData.type = loadedCommitData.type || ''
+            commitData.type = loadedCommitData.type || 'auto'
             commitData.scope = loadedCommitData.scope || ''
             commitData.description = loadedCommitData.description || ''
             commitData.body = loadedCommitData.body || ''

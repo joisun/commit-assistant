@@ -24,7 +24,7 @@
   export let vscode: any
 
   let aiFieldConfig = {
-    scope: false,
+    scope: true,
     body: false,
   }
 
@@ -46,13 +46,17 @@
 </script>
 
 <div class="space-y-4">
-  <div class="mt-4">
+  <div class="mt-4 flex justify-end">
     <AITrigger
-      on:generate={() =>
-        dispatch('aiGenerate', {
+      on:click={() => {
+      vscode.postMessage({
+        command: 'generateAICommit',
+        payload: {
           config: aiFieldConfig,
           formData: commitData,
-        })}
+        }
+      });
+    }}
       {disabled}
       {loading}
     />

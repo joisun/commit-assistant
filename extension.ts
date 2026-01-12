@@ -115,8 +115,8 @@ class CommitEditorPanel {
           case 'aiStart':
             this._generateAiCommitForText()
             return
-          case 'generateAiCommitForForm':
-            this._generateAiCommitForForm(message.config)
+          case 'generateAICommit':
+            this._generateAiCommitForForm(message.payload)
             return
         }
       },
@@ -194,7 +194,7 @@ class CommitEditorPanel {
     }
   }
 
-  private async _generateAiCommitForForm(aiFieldConfig: any) {
+  private async _generateAiCommitForForm(payload: { config: any, formData: any }) {
     Logger.info('Generating commit message for form view...')
     try {
       if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
@@ -223,6 +223,7 @@ class CommitEditorPanel {
       }
 
       const providerSettings = settings.providers[settings.activeProvider]
+      const { config: aiFieldConfig, formData } = payload;
 
       this._panel.webview.postMessage({ command: 'aiStart' })
 
@@ -238,7 +239,8 @@ class CommitEditorPanel {
           diff,
           commitTypes,
           aiFieldConfig,
-          providerSettings.baseUrl
+          providerSettings.baseUrl,
+          formData
         ),
         timeoutPromise,
       ])
@@ -285,8 +287,13 @@ class CommitEditorPanel {
 
   private _sendConfig() {
     const config = vscode.workspace.getConfiguration('commitAssistant')
-    const commitTypes = config.get('commitTypes')
+    const commitTypesFromConfig = config.get('commitTypes') as any[] || []
     const themeDeadline = config.get('themeDeadline')
+
+    const commitTypes = [
+      { value: 'auto', label: 'Auto', description: 'Let the AI select the type' },
+      ...commitTypesFromConfig
+    ];
 
     // We could also get flags from config in the future
     this._panel.webview.postMessage({
