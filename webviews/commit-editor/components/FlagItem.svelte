@@ -3,24 +3,37 @@
   import Trash from './icons/Trash.svelte';
   import Plus from './icons/Plus.svelte';
   import Minus from './icons/Minus.svelte';
+  import ThemeItem from './ThemeItem.svelte';
+  import {
+    type ThemeDeadlineConfig,
+    calculateDeadlineStatus,
+    getDeadlineColors,
+  } from '../../../src/constants/theme-deadline';
 
   export let flagName: string;
-  export let themes: string[];
+  export let themes: Record<string, { deadline?: string }>;
+  export let themeDeadlineConfig: ThemeDeadlineConfig;
 
   const dispatch = createEventDispatcher();
 
   let newThemeName = '';
+  let newThemeDeadline = '';
 
   function addTheme() {
     if (!newThemeName.trim()) {
       return;
     }
-    dispatch('addTheme', { flagName, themeName: newThemeName });
+    dispatch('addTheme', { flagName, themeName: newThemeName, deadline: newThemeDeadline });
     newThemeName = '';
+    newThemeDeadline = '';
   }
 
-  function deleteTheme(themeName: string) {
-    dispatch('deleteTheme', { flagName, themeName });
+  function updateTheme(event: CustomEvent) {
+    dispatch('updateTheme', event.detail);
+  }
+
+  function deleteTheme(event: CustomEvent) {
+    dispatch('deleteTheme', event.detail);
   }
 
   function deleteFlag() {
@@ -45,17 +58,20 @@
 
   <div class="pl-4 pr-1 pb-1.5">
     <div class="space-y-0.5">
-      {#each themes as theme}
-      <div class="theme-item">
-          <span class="text-sm">{theme}</span>
-          <button on:click={() => deleteTheme(theme)} class="delete-theme-button">
-          <Minus className="w-3.5 h-3.5" />
-          </button>
-      </div>
+      {#each Object.entries(themes) as [themeName, { deadline }]}
+        <ThemeItem
+          {flagName}
+          {themeName}
+          {deadline}
+          {themeDeadlineConfig}
+          on:updateTheme={updateTheme}
+          on:deleteTheme={deleteTheme}
+        />
       {/each}
     </div>
     <div class="flex space-x-1.5 mt-1.5 h-6 items-center">
-      <input type="text" bind:value={newThemeName} placeholder="New theme..." class="w-full" on:keydown={handleKeydown}>
+      <input type="text" bind:value={newThemeName} placeholder="New theme..." class="w-full" on:keydown={handleKeydown} />
+      <input type="date" bind:value={newThemeDeadline} class="deadline-input" />
       <button on:click={addTheme} class="add-button">
         <Plus className="w-3.5 h-3.5" />
       </button>
@@ -118,5 +134,14 @@
   .delete-theme-button:hover {
     background-color: rgba(var(--vscode-editor-foreground-rgb), 0.15);
     opacity: 0.8;
+  }
+  .deadline-input {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: var(--vscode-font-size);
+    height: 100%;
   }
 </style>

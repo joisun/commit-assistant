@@ -12,6 +12,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*.ts", "**/*.svelte"],
+  "include": ["**/*.ts", "**/*.svelte", "../src/**/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -2,8 +2,10 @@
   import { createEventDispatcher } from 'svelte';
   import Plus from './icons/Plus.svelte';
   import FlagItem from './FlagItem.svelte';
+  import type { ThemeDeadlineConfig } from '../../../src/constants/theme-deadline';
 
-  export let flags: Record<string, string[]> = {};
+  export let flags: Record<string, Record<string, { deadline?: string }>> = {};
+  export let themeDeadlineConfig: ThemeDeadlineConfig;
 
   let newFlagName = '';
 
@@ -12,24 +14,32 @@
       return;
     }
     if (newFlagName && !flags[newFlagName]) {
-      flags[newFlagName] = [];
+      flags[newFlagName] = {};
       flags = flags; // Trigger reactivity
       newFlagName = '';
     }
   }
 
   function handleAddTheme(event: CustomEvent) {
-    const { flagName, themeName } = event.detail;
-    if (themeName && !flags[flagName].includes(themeName)) {
-      flags[flagName] = [...flags[flagName], themeName];
-      flags = flags; // Trigger reactivity
+    const { flagName, themeName, deadline } = event.detail;
+    if (themeName && !flags[flagName][themeName]) {
+      flags[flagName][themeName] = { deadline };
+      flags = { ...flags }; // Trigger reactivity
+    }
+  }
+
+  function handleUpdateTheme(event: CustomEvent) {
+    const { flagName, themeName, deadline } = event.detail;
+    if (flags[flagName] && flags[flagName][themeName]) {
+      flags[flagName][themeName].deadline = deadline;
+      flags = { ...flags };
     }
   }
 
   function handleDeleteTheme(event: CustomEvent) {
     const { flagName, themeName } = event.detail;
-    flags[flagName] = flags[flagName].filter((t) => t !== themeName);
-    flags = flags; // Trigger reactivity
+    delete flags[flagName][themeName];
+    flags = { ...flags }; // Trigger reactivity
   }
 
   function handleDeleteFlag(event: CustomEvent) {
@@ -53,8 +63,10 @@
     {#each Object.entries(flags) as [flagName, themes]}
       <FlagItem
         {flagName}
-        {themes}
+        themes={themes}
+        {themeDeadlineConfig}
         on:addTheme={handleAddTheme}
+        on:updateTheme={handleUpdateTheme}
         on:deleteTheme={handleDeleteTheme}
         on:deleteFlag={handleDeleteFlag}
       />

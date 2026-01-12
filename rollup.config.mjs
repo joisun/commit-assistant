@@ -52,8 +52,12 @@ export default [
       format: 'iife',
       name: 'app',
       file: 'out/webview/bundle.js',
+      globals: {
+        vscode: 'acquireVsCodeApi()',
+      },
     },
     plugins: sharedPlugins(),
+    external: ['vscode'],
     watch: {
       clearScreen: false,
     },
@@ -65,8 +69,12 @@ export default [
       format: 'iife',
       name: 'settingsApp',
       file: 'out/webview/settings-bundle.js',
+      globals: {
+        vscode: 'acquireVsCodeApi()',
+      },
     },
     plugins: sharedPlugins(true), // Use shared plugins and tell it it's for settings
+    external: ['vscode'],
     watch: {
       clearScreen: false,
     },

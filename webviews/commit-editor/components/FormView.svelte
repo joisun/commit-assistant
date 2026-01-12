@@ -3,6 +3,9 @@
   import AITrigger from './AITrigger.svelte'
   import CustomSelect from './CustomSelect.svelte'
   import FlagsInput from './FlagsInput.svelte'
+  import type { ThemeDeadlineConfig } from '../../../src/constants/theme-deadline';
+
+  import type { ThemeDeadlineConfig } from '../../../src/constants/theme-deadline';
 
   export let commitData: {
     type: string
@@ -13,8 +16,9 @@
     selectedFlags: { flag: string; theme: string }[]
   }
 
-  export let flags: Record<string, string[]> = {}
+  export let flags: Record<string, Record<string, { deadline?: string }>> = {}
   export let commitTypes: { value: string; label: string; description?: string }[] = []
+  export let themeDeadlineConfig: ThemeDeadlineConfig;
   export let disabled = false
   export let loading = false
   export let vscode: any
@@ -73,7 +77,7 @@
       {loading}
     />
   </div>
-  <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} />
+  <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} {themeDeadlineConfig} />
   <div>
     <label for="type" class="block text-sm font-medium mb-1">Type</label>
     <CustomSelect items={commitTypes} selectedValue={commitData.type} on:change={(e) => update('type', e.detail)} placeholder="Select type..." />

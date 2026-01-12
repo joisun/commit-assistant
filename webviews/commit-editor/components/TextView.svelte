@@ -7,7 +7,8 @@
   export let commitData: {
     selectedFlags: { flag: string; theme: string }[]
   }
-  export let flags: Record<string, string[]> = {}
+  export let flags: Record<string, Record<string, { deadline?: string }>> = {}
+  export let themeDeadlineConfig: any;
   export let disabled = false
   export let loading = false
   export let vscode: any
@@ -52,7 +53,7 @@
   <textarea bind:this={textarea} id="commit-text" rows="4" bind:value on:input={autoGrow} placeholder="Write your commit message here..." class="w-full resize-none overflow-hidden"></textarea>
 
   <div class="mt-4">
-    <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} />
+    <FlagsInput selectedFlags={commitData.selectedFlags} availableFlags={flags} on:change={handleFlagsChange} {themeDeadlineConfig} />
   </div>
 </div>
 

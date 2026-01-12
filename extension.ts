@@ -9,7 +9,7 @@ interface WebviewState {
   currentView: 'form' | 'text' | 'flags'
   commitData: any
   textContent: string
-  flags?: Record<string, string[]>
+  flags?: Record<string, Record<string, { deadline?: string }>>
 }
 
 // New interfaces for our settings structure
@@ -92,12 +92,9 @@ class CommitEditorPanel {
             vscode.window.showErrorMessage(message.text)
             return
           case 'saveState':
-            // Save flags to global state
-            if (message.state.flags) {
-              this._context.globalState.update('flags', message.state.flags)
-            }
-            // Save other state to workspace state
+            // Save all state to workspace state
             this._context.workspaceState.update('state', message.state)
+            console.log('State saved to workspaceState:', message.state);
             return
           case 'openSettings':
             vscode.commands.executeCommand('commitAssistant.openSettings')
@@ -254,33 +251,36 @@ class CommitEditorPanel {
 
     // Load state from workspace and global storage
     const storedState = this._context.workspaceState.get<WebviewState>('state')
-    const globalFlags = this._context.globalState.get<Record<string, string[]>>('flags')
 
     // Merge workspace state with global flags
     const mergedState = storedState
       ? {
           ...storedState,
-          flags: globalFlags || storedState.flags || {},
+          flags: storedState.flags || {},
         }
       : {
           currentView: 'form',
           commitData: {},
           textContent: '',
-          flags: globalFlags || {},
+          flags: {},
         }
 
     // Send merged state to the webview
+    console.log('State sent to webview:', mergedState);
     this._panel.webview.postMessage({ command: 'loadState', state: mergedState })
   }
 
   private _sendConfig() {
     const config = vscode.workspace.getConfiguration('commitAssistant')
     const commitTypes = config.get('commitTypes')
+    const themeDeadline = config.get('themeDeadline')
+
     // We could also get flags from config in the future
     this._panel.webview.postMessage({
       command: 'loadConfig',
       config: {
         commitTypes,
+        themeDeadline,
         flags: {}, // Placeholder for future flag configuration
       },
     })

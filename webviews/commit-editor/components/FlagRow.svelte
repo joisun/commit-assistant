@@ -1,22 +1,32 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
-  import Minus from './icons/Minus.svelte'
+  import { createEventDispatcher } from 'svelte';
+  import Minus from './icons/Minus.svelte';
+  import {
+    calculateDeadlineStatus,
+    formatDeadline,
+    getDeadlineColors,
+    type ThemeDeadlineConfig,
+  } from '../../../src/constants/theme-deadline';
 
-  export let selectedFlag: string
-  export let selectedTheme: string
-  export let availableFlags: Record<string, string[]> = {}
+  export let selectedFlag: string;
+  export let selectedTheme: string;
+  export let availableFlags: Record<string, Record<string, { deadline?: string }>> = {};
+  export let themeDeadlineConfig: ThemeDeadlineConfig;
 
-  const dispatch = createEventDispatcher()
+  const dispatch = createEventDispatcher();
 
   function update(field: 'flag' | 'theme', value: string) {
-    dispatch('update', { field, value })
+    dispatch('update', { field, value });
   }
 
   function remove() {
-    dispatch('remove')
+    dispatch('remove');
   }
 
-  $: availableThemes = availableFlags[selectedFlag] || []
+  $: availableThemes = Object.keys(availableFlags[selectedFlag] || {});
+  $: selectedThemeData = selectedFlag && selectedTheme ? availableFlags[selectedFlag]?.[selectedTheme] : undefined;
+  $: deadlineStatus = calculateDeadlineStatus(selectedThemeData?.deadline, themeDeadlineConfig);
+  $: deadlineColors = getDeadlineColors(deadlineStatus, themeDeadlineConfig);
 </script>
 
 <div class="flex items-center space-x-2">
@@ -32,7 +42,14 @@
     <select class="w-full" value={selectedTheme} on:change={(e) => update('theme', e.currentTarget.value)} disabled={!selectedFlag || availableThemes.length === 0}>
       <option value="">Select theme...</option>
       {#each availableThemes as theme}
-        <option value={theme}>{theme}</option>
+        {@const status = calculateDeadlineStatus(availableFlags[selectedFlag]?.[theme]?.deadline, themeDeadlineConfig)}
+        {@const colors = getDeadlineColors(status, themeDeadlineConfig)}
+        <option value={theme}>
+          {theme}
+          {#if availableFlags[selectedFlag]?.[theme]?.deadline}
+            ({formatDeadline(availableFlags[selectedFlag][theme].deadline)}) - Status: {status}
+          {/if}
+        </option>
       {/each}
     </select>
   </div>
@@ -40,6 +57,12 @@
     <Minus />
   </button>
 </div>
+
+{#if selectedThemeData?.deadline}
+  <div class="text-xs mt-1" style="color: {deadlineColors.text}">
+    Status: {deadlineStatus}
+  </div>
+{/if}
 
 <style>
   select {
@@ -57,6 +80,9 @@
     background-size: 1em;
     padding-right: 2rem;
   }
+  select option {
+    font-size: 0.85em; /* Smaller font size for options */
+  }
   select:focus {
     outline: 1px solid var(--vscode-focusBorder);
     outline-offset: -1px;
@@ -71,5 +97,11 @@
   }
   .remove-button:hover {
     opacity: 1;
+  }
+  .deadline-tag {
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    margin-left: 8px;
   }
 </style>

@@ -3,6 +3,7 @@
   import { tick } from 'svelte'
   import Eye from './components/icons/Eye.svelte'
   import EyeOff from './components/icons/EyeOff.svelte'
+  import { DEFAULT_THEME_DEADLINE_CONFIG, type ThemeDeadlineConfig } from '../../src/constants/theme-deadline'
 
   // @ts-ignore
   const vscode = acquireVsCodeApi()
@@ -26,6 +27,7 @@
     providers: {
       [key: string]: ProviderSettings
     }
+    themeDeadline: ThemeDeadlineConfig
   }
 
   // State
@@ -35,6 +37,7 @@
     maxLength: 50,
     debug: false,
     providers: {},
+    themeDeadline: DEFAULT_THEME_DEADLINE_CONFIG,
   }
 
   let availableModels: Model[] = []
@@ -120,6 +123,7 @@
             maxLength: loadedSettings.maxLength || 50,
             debug: loadedSettings.debug || false,
             providers: loadedSettings.providers || {},
+            themeDeadline: { ...DEFAULT_THEME_DEADLINE_CONFIG, ...(loadedSettings.themeDeadline || {}) },
           }
           // Ensure all provider keys exist after loading
           for (const p of providerIds) {
@@ -232,6 +236,51 @@
     <h3 class="text-lg font-bold">Max Length</h3>
     <p class="text-sm" style="color: var(--vscode-descriptionForeground);">Set the maximum length for the generated text.</p>
     <input id="maxLength" type="number" class="w-full" bind:value={settings.maxLength} on:input={debouncedSave} placeholder="e.g., 50" />
+  </div>
+
+  <div class="border-t" style="border-color: var(--vscode-input-border);"></div>
+
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold">Theme Deadline Settings</h3>
+    <p class="text-sm" style="color: var(--vscode-descriptionForeground);">Configure theme deadline thresholds (in days) and colors.</p>
+
+    <div class="space-y-4">
+      <div class="space-y-2">
+        <label for="healthyThreshold" class="block text-sm font-medium">Healthy Threshold</label>
+        <input id="healthyThreshold" type="number" class="w-full" min="0" bind:value={settings.themeDeadline.healthyThreshold} on:input={debouncedSave} placeholder="e.g., 3" />
+        <p class="text-xs" style="color: var(--vscode-descriptionForeground);">Themes with more days than this are considered healthy.</p>
+      </div>
+
+      <div class="space-y-2">
+        <label for="warningThreshold" class="block text-sm font-medium">Warning Threshold</label>
+        <input id="warningThreshold" type="number" class="w-full" min="0" bind:value={settings.themeDeadline.warningThreshold} on:input={debouncedSave} placeholder="e.g., 3" />
+        <p class="text-xs" style="color: var(--vscode-descriptionForeground);">Themes with less days than this will show a warning.</p>
+      </div>
+
+      <div class="space-y-2">
+        <label for="overdueThreshold" class="block text-sm font-medium">Overdue Threshold</label>
+        <input id="overdueThreshold" type="number" class="w-full" min="0" bind:value={settings.themeDeadline.overdueThreshold} on:input={debouncedSave} placeholder="e.g., 0" />
+        <p class="text-xs" style="color: var(--vscode-descriptionForeground);">Themes with less days than this are considered overdue.</p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm font-medium">Colors</label>
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <label for="healthyColor" class="text-sm">Healthy</label>
+            <input id="healthyColor" type="color" bind:value={settings.themeDeadline.colors.healthy} on:input={debouncedSave} />
+          </div>
+          <div class="flex items-center space-x-2">
+            <label for="warningColor" class="text-sm">Warning</label>
+            <input id="warningColor" type="color" bind:value={settings.themeDeadline.colors.warning} on:input={debouncedSave} />
+          </div>
+          <div class="flex items-center space-x-2">
+            <label for="overdueColor" class="text-sm">Overdue</label>
+            <input id="overdueColor" type="color" bind:value={settings.themeDeadline.colors.overdue} on:input={debouncedSave} />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="border-t" style="border-color: var(--vscode-input-border);"></div>

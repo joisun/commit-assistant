@@ -6,6 +6,7 @@
   import Actions from './components/Actions.svelte'
   import FlagsView from './components/FlagsView.svelte'
   import SettingsIcon from './components/icons/Settings.svelte'
+  import { DEFAULT_THEME_DEADLINE_CONFIG, type ThemeDeadlineConfig } from '../../src/constants/theme-deadline'
 
   // @ts-ignore
   const vscode = acquireVsCodeApi()
@@ -22,8 +23,9 @@
   }
 
   let textContent = ''
-  let flags: Record<string, string[]> = {}
+  let flags: Record<string, Record<string, { deadline?: string }>> = {}
   let commitTypes: { value: string; label: string; description?: string }[] = []
+  let themeDeadlineConfig: ThemeDeadlineConfig = DEFAULT_THEME_DEADLINE_CONFIG
   let preview = ''
   let isAiLoading = false
 
@@ -105,6 +107,7 @@
         case 'loadConfig':
           flags = message.config.flags || {}
           commitTypes = message.config.commitTypes || []
+          themeDeadlineConfig = { ...DEFAULT_THEME_DEADLINE_CONFIG, ...(message.config.themeDeadline || {}) }
           break
         case 'aiStart':
           isAiLoading = true
@@ -152,6 +155,7 @@
     JSON.stringify(flags)
 
     // Post the state to the extension host
+    console.log('Saving state with flags:', flags);
     vscode.postMessage({
       command: 'saveState',
       state: { currentView, commitData, textContent, flags },
@@ -176,6 +180,7 @@
         bind:commitData
         {flags}
         {commitTypes}
+        {themeDeadlineConfig}
         on:change={(e) => {
           commitData = e.detail
         }}
@@ -188,6 +193,7 @@
         bind:value={textContent}
         bind:commitData
         {flags}
+        {themeDeadlineConfig}
         disabled={isAiLoading}
         loading={isAiLoading}
         {vscode}
@@ -196,7 +202,7 @@
         }}
       />
     {:else if currentView === 'flags'}
-      <FlagsView bind:flags />
+      <FlagsView bind:flags {themeDeadlineConfig} />
     {/if}
   </div>
 

@@ -2,9 +2,11 @@
   import { createEventDispatcher } from 'svelte'
   import FlagRow from './FlagRow.svelte'
   import Plus from './icons/Plus.svelte'
+  import type { ThemeDeadlineConfig } from '../../../src/constants/theme-deadline';
 
-  export let selectedFlags: { flag: string; theme: string }[] = []
-  export let availableFlags: Record<string, string[]> = {}
+  export let selectedFlags: { flag: string; theme: string; deadline?: string }[] = []
+  export let availableFlags: Record<string, Record<string, { deadline?: string }>> = {}
+  export let themeDeadlineConfig: ThemeDeadlineConfig;
 
   const dispatch = createEventDispatcher()
 
@@ -13,10 +15,14 @@
     dispatch('change', selectedFlags)
   }
 
-  function handleFlagUpdate(index: number, detail: { field: 'flag' | 'theme'; value: string }) {
+  function handleFlagUpdate(index: number, detail: { field: 'flag' | 'theme' | 'deadline'; value: string }) {
     selectedFlags[index][detail.field] = detail.value
     if (detail.field === 'flag') {
       selectedFlags[index].theme = ''
+    }
+    // When a theme is selected, we need to get its deadline from availableFlags
+    if (detail.field === 'theme') {
+      selectedFlags[index].deadline = availableFlags[selectedFlags[index].flag]?.[detail.value]?.deadline
     }
     dispatch('change', selectedFlags)
   }
@@ -31,7 +37,14 @@
   <label class="block text-sm font-medium mb-1">Flags <span class="text-gray-400">(optional)</span></label>
   <div class="space-y-2">
     {#each selectedFlags as { flag, theme }, index}
-      <FlagRow selectedFlag={flag} selectedTheme={theme} {availableFlags} on:update={(e) => handleFlagUpdate(index, e.detail)} on:remove={() => handleFlagRemove(index)} />
+      <FlagRow
+        selectedFlag={flag}
+        selectedTheme={theme}
+        {availableFlags}
+        {themeDeadlineConfig}
+        on:update={(e) => handleFlagUpdate(index, e.detail)}
+        on:remove={() => handleFlagRemove(index)}
+      />
     {/each}
     <button on:click={addFlagRow} class="add-flag-button">
       <Plus />
