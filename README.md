@@ -21,6 +21,13 @@ Built with **Svelte + TypeScript + Tailwind CSS** for optimal performance, maint
 - **Auto-growing textarea** that adapts to content length
 - **Flag integration** that works seamlessly with text mode
 
+### 🚩 **Multi-scope Flags System**
+- **Dual Storage Support**: Choose between **Global** (User settings) for cross-project flags or **Workspace** (Project settings) for project-specific metadata.
+- **Visual Scope Indicators**: Each theme features a **Globe (🌐)** icon. High-lighted means Global storage; dimmed means Workspace storage.
+- **Standardized Persistence**: Workspace flags are saved directly into your परियोजना's `.vscode/settings.json`, allowing for easy version control and manual editing.
+- **Safety Constraints**: Prevent accidental data loss with smart deletion rules — Flags containing themes cannot be deleted until their themes are removed.
+- **Seamless Integration**: Flags are automatically appended as footers (e.g., `#feat:ui`) to your commit messages in both Form and Text modes.
+
 ### 🤖 **AI Integration**
 - **OpenAI & Google AI** support for intelligent commit message generation
 - **Context-aware suggestions** based on your code changes
@@ -56,7 +63,7 @@ Built with **Svelte + TypeScript + Tailwind CSS** for optimal performance, maint
 2. **Choose your mode**: 
    - **Form Mode**: Fill out structured fields for conventional commits
    - **Text Mode**: Write commit messages in free text format
-   - **Flags Mode**: Configure custom flags for your workflow
+   - **Flags Mode**: Configure custom flags for your workflow. Use the **Globe (🌐)** icon to toggle between Global and Workspace storage.
 3. **Use AI assistance**: Click the AI trigger buttons for intelligent suggestions
 4. **Save your commit**: Press `Ctrl+Enter` or click the Save button
 
@@ -84,7 +91,15 @@ Customize available commit types:
       "description": "A bug fix"
     }
     // ... more types
-  ]
+  ],
+  "commitAssistant.flags": {
+    "feat": {
+      "ui": {
+        "deadline": "2026-12-31",
+        "docUrl": "https://example.com/docs"
+      }
+    }
+  }
 }
 ```
 
