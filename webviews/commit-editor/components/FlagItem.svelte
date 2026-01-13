@@ -57,19 +57,25 @@
 <div class="rounded-md" style="background-color: var(--vscode-sideBar-background);">
   <div class="flex justify-between items-center py-1.5 pl-2.5 pr-1">
     <h4 class="text-sm font-semibold">{flagName}</h4>
-    <button on:click={deleteFlag} class="delete-flag-button">
+    <button 
+      on:click={deleteFlag} 
+      class="delete-flag-button" 
+      disabled={Object.keys(themes).length > 0}
+      title={Object.keys(themes).length > 0 ? "Cannot delete flag with themes" : "Delete flag"}
+    >
       <Trash className="w-3.5 h-3.5" />
     </button>
   </div>
 
   <div class="pl-4 pr-1 pb-1.5">
     <div class="space-y-0.5">
-      {#each Object.entries(themes) as [themeName, { deadline, docUrl }]}
+      {#each Object.entries(themes) as [themeName, data]}
         <ThemeItem
           {flagName}
           {themeName}
-          {deadline}
-          {docUrl}
+          deadline={data.deadline}
+          docUrl={data.docUrl}
+          scope={data.scope}
           {themeDeadlineConfig}
           on:updateTheme={updateTheme}
           on:deleteTheme={deleteTheme}
@@ -139,6 +145,13 @@
   .delete-flag-button:hover {
     background-color: rgba(var(--vscode-editor-foreground-rgb), 0.15);
     opacity: 0.8;
+  }
+  .delete-flag-button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .delete-flag-button:disabled:hover {
+    background-color: rgba(var(--vscode-editor-foreground-rgb), 0.1);
   }
   .deadline-input {
     box-sizing: border-box;

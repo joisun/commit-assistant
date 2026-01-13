@@ -10,7 +10,17 @@ interface WebviewState {
   currentView: 'form' | 'text' | 'flags'
   commitData: any
   textContent: string
-  flags?: Record<string, Record<string, { deadline?: string; docUrl?: string }>>
+}
+
+interface FlagConfig {
+  [theme: string]: {
+    deadline?: string
+    docUrl?: string
+  }
+}
+
+interface FlagsConfig {
+  [flag: string]: FlagConfig
 }
 
 // New interfaces for our settings structure
@@ -45,6 +55,17 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('commitAssistant.openSettings', () => {
       SettingsPanel.createOrShow(context)
+    })
+  )
+
+  // Listen for configuration changes
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('commitAssistant.flags')) {
+        if (CommitEditorPanel.currentPanel) {
+          CommitEditorPanel.currentPanel.refreshConfig()
+        }
+      }
     })
   )
 }
@@ -95,9 +116,15 @@ class CommitEditorPanel {
             vscode.window.showErrorMessage(message.text)
             return
           case 'saveState':
-            // Save all state to workspace state
-            this._context.workspaceState.update('state', message.state)
-            console.log('State saved to workspaceState:', message.state);
+            // Save UI state to workspace state
+            this._context.workspaceState.update('state', {
+              currentView: message.state.currentView,
+              commitData: message.state.commitData,
+              textContent: message.state.textContent
+            })
+            return
+          case 'updateFlags':
+            this._updateFlags(message.globalFlags, message.workspaceFlags)
             return
           case 'openSettings':
             vscode.commands.executeCommand('commitAssistant.openSettings')
@@ -126,6 +153,20 @@ class CommitEditorPanel {
       null,
       this._disposables
     )
+  }
+
+  private async _updateFlags(globalFlags: FlagsConfig, workspaceFlags: FlagsConfig) {
+    const config = vscode.workspace.getConfiguration('commitAssistant')
+    try {
+      await config.update('flags', globalFlags, vscode.ConfigurationTarget.Global)
+      await config.update('flags', workspaceFlags, vscode.ConfigurationTarget.Workspace)
+    } catch (error: any) {
+      vscode.window.showErrorMessage(`Failed to save flags: ${error.message}`)
+    }
+  }
+
+  public refreshConfig() {
+    this._sendConfig()
   }
 
   private _saveCommitMessage(commitMessage: string) {
@@ -267,24 +308,20 @@ class CommitEditorPanel {
 
     this._sendConfig()
 
-    // Load state from workspace and global storage
+    // Load UI state from workspace state
     const storedState = this._context.workspaceState.get<WebviewState>('state')
 
-    // Merge workspace state with global flags
     const mergedState = storedState
       ? {
           ...storedState,
-          flags: storedState.flags || {},
         }
       : {
           currentView: 'form',
           commitData: {},
           textContent: '',
-          flags: {},
         }
 
     // Send merged state to the webview
-    console.log('State sent to webview:', mergedState);
     this._panel.webview.postMessage({ command: 'loadState', state: mergedState })
   }
 
@@ -301,14 +338,36 @@ class CommitEditorPanel {
       ...commitTypesFromConfig
     ];
 
-    // We could also get flags from config in the future
+    const inspect = config.inspect<FlagsConfig>('flags')
+    const globalFlags = inspect?.globalValue || {}
+    const workspaceFlags = inspect?.workspaceValue || {}
+
+    // Merge flags for the webview UI, adding scope info to each theme
+    const mergedFlags: Record<string, Record<string, any>> = {}
+
+    // Add global flags
+    for (const [flag, themes] of Object.entries(globalFlags)) {
+      if (!mergedFlags[flag]) mergedFlags[flag] = {}
+      for (const [theme, data] of Object.entries(themes)) {
+        mergedFlags[flag][theme] = { ...data, scope: 'global' }
+      }
+    }
+
+    // Add workspace flags (overwrites or adds to global)
+    for (const [flag, themes] of Object.entries(workspaceFlags)) {
+      if (!mergedFlags[flag]) mergedFlags[flag] = {}
+      for (const [theme, data] of Object.entries(themes)) {
+        mergedFlags[flag][theme] = { ...data, scope: 'workspace' }
+      }
+    }
+
     this._panel.webview.postMessage({
       command: 'loadConfig',
       config: {
         commitTypes,
         themeDeadline,
         preference,
-        flags: {}, // Placeholder for future flag configuration
+        flags: mergedFlags,
       },
     })
   }

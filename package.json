@@ -111,6 +111,28 @@
             }
           ],
           "description": "The list of commit types to display in the type selector. Override this in your user or workspace settings."
+        },
+        "commitAssistant.flags": {
+          "type": "object",
+          "default": {},
+          "description": "Custom flags for commit messages. Can be configured at global or workspace level.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "deadline": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "Optional deadline for this theme."
+                },
+                "docUrl": {
+                  "type": "string",
+                  "description": "Optional documentation URL for this theme."
+                }
+              }
+            }
+          }
         }
       }
     }

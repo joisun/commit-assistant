@@ -3,6 +3,7 @@
   import Minus from './icons/Minus.svelte';
   import Edit from './icons/Edit.svelte';
   import Check from './icons/Check.svelte';
+  import Globe from './icons/Globe.svelte';
   import {
     type ThemeDeadlineConfig,
     calculateDeadlineStatus,
@@ -13,6 +14,7 @@
   export let themeName: string;
   export let deadline: string | undefined;
   export let docUrl: string | undefined;
+  export let scope: 'global' | 'workspace' = 'global';
   export let themeDeadlineConfig: ThemeDeadlineConfig;
 
   const dispatch = createEventDispatcher();
@@ -25,7 +27,12 @@
   $: colors = getDeadlineColors(status, themeDeadlineConfig);
 
   function updateTheme() {
-    dispatch('updateTheme', { flagName, themeName, deadline: currentDeadline, docUrl });
+    dispatch('updateTheme', { flagName, themeName, deadline: currentDeadline, docUrl, scope });
+  }
+
+  function toggleScope() {
+    scope = scope === 'global' ? 'workspace' : 'global';
+    updateTheme();
   }
 
   function deleteTheme() {
@@ -100,6 +107,14 @@
       bind:value={currentDeadline}
       on:change={updateTheme}
     />
+
+    <button
+      on:click={toggleScope}
+      class="scope-toggle ml-1 {scope}"
+      title={scope === 'global' ? 'Global (User Settings)' : 'Workspace (settings.json)'}
+    >
+      <Globe className="w-3.5 h-3.5" />
+    </button>
 
     <button on:click={deleteTheme} class="delete-theme-button ml-1">
       <Minus className="w-3.5 h-3.5" />
@@ -186,6 +201,18 @@
   }
   .url-text-link:hover {
     opacity: 0.8;
+  }
+  .scope-toggle {
+    color: var(--vscode-editor-foreground);
+    background-color: transparent;
+    opacity: 0.25;
+  }
+  .scope-toggle.global {
+    opacity: 0.9;
+  }
+  .scope-toggle:hover {
+    background-color: rgba(var(--vscode-editor-foreground-rgb), 0.1);
+    opacity: 1;
   }
   .delete-theme-button {
     color: var(--vscode-editor-foreground);

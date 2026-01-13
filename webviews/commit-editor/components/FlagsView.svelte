@@ -19,22 +19,25 @@
       flags[newFlagName] = {};
       flags = flags; // Trigger reactivity
       newFlagName = '';
+      dispatch('change', flags);
     }
   }
 
   function handleAddTheme(event: CustomEvent) {
-    const { flagName, themeName, deadline, docUrl } = event.detail;
+    const { flagName, themeName, deadline, docUrl, scope } = event.detail;
     if (themeName && !flags[flagName][themeName]) {
-      flags[flagName][themeName] = { deadline, docUrl };
+      flags[flagName][themeName] = { deadline, docUrl, scope: scope || 'global' };
       flags = { ...flags }; // Trigger reactivity
+      dispatch('change', flags);
     }
   }
 
   function handleUpdateTheme(event: CustomEvent) {
-    const { flagName, themeName, deadline, docUrl } = event.detail;
+    const { flagName, themeName, deadline, docUrl, scope } = event.detail;
     if (flags[flagName] && flags[flagName][themeName]) {
-      flags[flagName][themeName] = { ...flags[flagName][themeName], deadline, docUrl };
+      flags[flagName][themeName] = { ...flags[flagName][themeName], deadline, docUrl, scope };
       flags = { ...flags };
+      dispatch('change', flags);
     }
   }
 
@@ -42,12 +45,14 @@
     const { flagName, themeName } = event.detail;
     delete flags[flagName][themeName];
     flags = { ...flags }; // Trigger reactivity
+    dispatch('change', flags);
   }
 
   function handleDeleteFlag(event: CustomEvent) {
     const flagName = event.detail;
     delete flags[flagName];
     flags = flags; // Trigger reactivity
+    dispatch('change', flags);
   }
 
   function handleOpenUrl(event: CustomEvent) {

@@ -23,12 +23,37 @@
   }
 
   let textContent = ''
-  let flags: Record<string, Record<string, { deadline?: string; docUrl?: string }>> = {}
+  let flags: Record<string, Record<string, { deadline?: string; docUrl?: string; scope?: 'global' | 'workspace' }>> = {}
   let commitTypes: { value: string; label: string; description?: string }[] = []
   let themeDeadlineConfig: ThemeDeadlineConfig = DEFAULT_THEME_DEADLINE_CONFIG
   let preference = { loadingEffect: 'creative' };
   let preview = ''
   let isAiLoading = false
+
+  function syncFlags(currentFlags: typeof flags) {
+    const globalFlags: any = {}
+    const workspaceFlags: any = {}
+
+    for (const [flag, themes] of Object.entries(currentFlags)) {
+      for (const [theme, data] of Object.entries(themes)) {
+        const { scope, ...rest } = data
+        const target = scope === 'workspace' ? workspaceFlags : globalFlags
+        if (!target[flag]) target[flag] = {}
+        target[flag][theme] = rest
+      }
+    }
+
+    vscode.postMessage({
+      command: 'updateFlags',
+      globalFlags,
+      workspaceFlags
+    })
+  }
+
+  function handleFlagsChange(event: CustomEvent) {
+    flags = event.detail
+    syncFlags(flags)
+  }
 
   function generateCommitFromForm() {
     const { type, scope, description, body, footer, selectedFlags } = commitData
@@ -107,7 +132,6 @@
             commitData.selectedFlags = loadedCommitData.selectedFlags || []
           }
           textContent = state.textContent || ''
-          flags = state.flags || {}
           break
         case 'loadConfig':
           flags = message.config.flags || {}
@@ -156,15 +180,13 @@
       }
       preview = message
     }
-    // This makes the block reactive to commitData and flags
+    // This makes the block reactive to commitData
     JSON.stringify(commitData)
-    JSON.stringify(flags)
 
-    // Post the state to the extension host
-    console.log('Saving state with flags:', flags);
+    // Post the state to the extension host (without flags)
     vscode.postMessage({
       command: 'saveState',
-      state: { currentView, commitData, textContent, flags },
+      state: { currentView, commitData, textContent },
     })
   }
 </script>
@@ -211,7 +233,7 @@
         on:openUrl={handleOpenUrl}
       />
     {:else if currentView === 'flags'}
-      <FlagsView bind:flags {themeDeadlineConfig} on:openUrl={handleOpenUrl} />
+      <FlagsView bind:flags {themeDeadlineConfig} on:openUrl={handleOpenUrl} on:change={handleFlagsChange} />
     {/if}
   </div>
 
