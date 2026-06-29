@@ -159,8 +159,11 @@ class CommitEditorPanel {
     const config = vscode.workspace.getConfiguration('commitAssistant')
     try {
       await config.update('flags', globalFlags, vscode.ConfigurationTarget.Global)
-      await config.update('flags', workspaceFlags, vscode.ConfigurationTarget.Workspace)
+      if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+        await config.update('flags', workspaceFlags, vscode.ConfigurationTarget.Workspace)
+      }
     } catch (error: any) {
+      Logger.error(`Failed to save flags: ${error.message}`)
       vscode.window.showErrorMessage(`Failed to save flags: ${error.message}`)
     }
   }

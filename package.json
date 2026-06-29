@@ -2,7 +2,7 @@
   "name": "commit-assistant",
   "displayName": "Commit Assistant",
   "description": "Smart commit message editor that helps you write better commit messages",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "sunzhongyi",
   "license": "MIT",
   "engines": {
@@ -114,6 +114,7 @@
         },
         "commitAssistant.flags": {
           "type": "object",
+          "scope": "resource",
           "default": {},
           "description": "Custom flags for commit messages. Can be configured at global or workspace level.",
           "additionalProperties": {
